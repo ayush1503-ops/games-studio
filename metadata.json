@@ -1,0 +1,6 @@
+{
+  "name": "Brainchild Games",
+  "description": "Brainchild Games is a playful home for handcrafted worlds: discover sky-island adventures, golden-sea expeditions, surreal puzzles and co-op heists. Good games. Good times.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
