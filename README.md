@@ -13,16 +13,18 @@ cp .env.example .env.local
 npm run dev
 ```
 
-The local app runs at `http://localhost:3000`. The checked-in `.env.example`
-contains the current Supabase project URL and publishable key. The same public
-values are configured for the Vercel build in `vercel.json`.
+The local app runs at `http://localhost:3000`. `.env.example` ships with
+placeholders only — no project URL, project ref or API key is committed to this
+repository. Fill in the values from your own Supabase project (**Project
+Settings → API**) before Supabase-backed features (auth, catalog, newsletter)
+will work; the site still renders without them.
 
 ## Set up the database
 
-Run [`supabase/editor_setup.sql`](supabase/editor_setup.sql) in the Supabase
-SQL Editor for project `gwmljctpddazmjmrrqjy`. Then create
-`abhaypoptani@gmail.com` in **Authentication → Users** with a password you
-choose privately. Run the final promotion block to make that account
+Run [`supabase/editor_setup.sql`](supabase/editor_setup.sql) in the Supabase SQL
+Editor of your own project. Then create your studio account in
+**Authentication → Users** with a password you choose privately, and run the
+final promotion block (replacing `YOUR_ADMIN_EMAIL`) to make that account
 `SUPER_ADMIN`.
 
 There is deliberately no default, shared, seeded, or hard-coded password. The
@@ -53,11 +55,33 @@ npx vercel --prod
 ```
 
 The app does not need a custom API server, database URL, JWT secret, SMTP
-credential, or Vercel function. Configure the same redirect URLs in Supabase
-Authentication settings after Vercel gives you the production domain. Vercel
-will use the project URL and publishable key already present in `vercel.json`,
-or you may override them with `VITE_SUPABASE_URL` and
-`VITE_SUPABASE_ANON_KEY` in the Vercel project settings.
+credential, or Vercel function.
+
+Before the first production deploy, check the Vercel project settings:
+
+- **General → Root Directory** must be `./` (the repository root), otherwise
+  `vercel.json` is never read.
+- **Build & Development Settings**: Framework Preset `Vite`, Build Command
+  `npm run build`, Output Directory `dist`. These are also declared in
+  `vercel.json`, so a plain Git push works with no dashboard edits.
+- **Environment Variables**: add `VITE_SUPABASE_URL` and
+  `VITE_SUPABASE_ANON_KEY` (publishable key). Keys live here, never in
+  `vercel.json` or Git. Redeploy after changing them.
+
+### Single-page-app routing
+
+This is a client-routed SPA, so every deep link (`/admin`, `/admin/login`,
+`/games`, …) must fall back to `index.html`. `vercel.json` declares that
+rewrite. Without it Vercel answers deep links with its own
+`404: NOT_FOUND — This page doesn't exist` page even though `/` loads fine,
+which is the usual cause of "the admin panel 404s in production". After
+changing `vercel.json`, redeploy and hard-refresh.
+
+Finally, configure the same redirect URLs in Supabase Authentication settings
+once Vercel gives you the production domain:
+
+- `https://YOUR-VERCEL-DOMAIN.vercel.app/**`
+- `http://localhost:3000/**`
 
 ## Useful commands
 

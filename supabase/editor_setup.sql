@@ -1,5 +1,6 @@
 -- Brainchild Games — Supabase SQL Editor setup
--- Project: gwmljctpddazmjmrrqjy
+-- Project: run this against your own Supabase project (no project ref, key or
+--          credential is stored in this repository).
 --
 -- Run this entire file in Supabase Dashboard → SQL Editor. It creates the
 -- content model, RLS policies, storage buckets and safe public-form access.
@@ -560,14 +561,16 @@ COMMIT;
 
 -- ============================================================================
 -- CREATE YOUR FIRST STUDIO ADMIN (run after creating the user in Auth → Users)
--- This block is ready for the studio owner email below. Change only the
--- display name if you want a different label. Do not add a password here.
--- The password is set privately in Supabase Auth when you create the user.
+--
+-- Replace YOUR_ADMIN_EMAIL below with the email of the account you created in
+-- Authentication → Users, then run this block. Change the display name if you
+-- want a different label. Do not add a password here — the password is set
+-- privately in Supabase Auth when you create the user.
 -- ============================================================================
 INSERT INTO admin_users (id, email, name, role, is_active)
 SELECT id, lower(email), 'Studio Admin', 'SUPER_ADMIN', true
 FROM auth.users
-WHERE lower(email) = lower('abhaypoptani@gmail.com')
+WHERE lower(email) = lower('YOUR_ADMIN_EMAIL')
 ON CONFLICT (id) DO UPDATE SET
   email = EXCLUDED.email,
   name = EXCLUDED.name,
@@ -579,4 +582,4 @@ ON CONFLICT (id) DO UPDATE SET
 SELECT au.id, au.email, au.name, au.role, au.is_active
 FROM admin_users au
 JOIN auth.users u ON u.id = au.id
-WHERE lower(u.email) = lower('abhaypoptani@gmail.com');
+WHERE lower(u.email) = lower('YOUR_ADMIN_EMAIL');

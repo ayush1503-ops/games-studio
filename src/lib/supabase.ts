@@ -4,10 +4,14 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
  * Supabase client (browser-side, publishable/anon key only).
  *
  * Configuration is read from Vite environment variables:
- *   VITE_SUPABASE_URL      – the project URL, e.g. https://gwmljctpddazmjmrrqjy.supabase.co
- *                            (always https://<project-ref>.supabase.co — the ref is the
- *                            20-character id in the dashboard URL, *not* a piece of the key)
+ *   VITE_SUPABASE_URL      – the project URL (always https://<project-ref>.supabase.co —
+ *                            the ref is the 20-character id in the dashboard URL,
+ *                            *not* a piece of the key)
  *   VITE_SUPABASE_ANON_KEY – the publishable/anon key (safe to expose)
+ *
+ * No project URL or key is hard-coded anywhere in this repository; see
+ * `.env.example` for the values to set locally and in the Vercel project
+ * settings.
  *
  * Both are validated at import time so misconfiguration is loud, not silent.
  */
@@ -74,6 +78,33 @@ function readAuthCallbackParams(): AuthCallbackParams {
 }
 
 export const authCallbackParams: AuthCallbackParams = readAuthCallbackParams();
+
+/**
+ * The Supabase project ref for the configured project, or null when Supabase is
+ * not configured. Prefers an explicit VITE_SUPABASE_PROJECT_REF and otherwise
+ * derives it from the project URL (`https://<ref>.supabase.co`).
+ *
+ * Used only to build convenience links into the Supabase dashboard — the ref is
+ * public information, but it is never hard-coded here so this repository stays
+ * portable across projects.
+ */
+export const supabaseProjectRef = (): string | null => {
+  const explicit = (import.meta.env.VITE_SUPABASE_PROJECT_REF ?? '').trim();
+  if (explicit) return explicit;
+
+  const match = url.match(/^https?:\/\/([^.]+)\.supabase\./i);
+  return match ? match[1] : null;
+};
+
+/**
+ * Absolute URL for a page inside this project's Supabase dashboard, or null when
+ * the project ref is unknown. Example: `supabaseDashboardUrl('/auth/users')`.
+ */
+export const supabaseDashboardUrl = (path = ''): string | null => {
+  const ref = supabaseProjectRef();
+  if (!ref) return null;
+  return `https://supabase.com/dashboard/project/${ref}${path.startsWith('/') ? path : `/${path}`}`;
+};
 
 /** True when this page load is the landing of a password-recovery email link. */
 export const isPasswordRecoveryCallback = (): boolean =>
