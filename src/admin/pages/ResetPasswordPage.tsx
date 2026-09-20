@@ -5,6 +5,7 @@ import { motion } from 'motion/react';
 import { ApiError, authApi } from '../utils/api';
 import { useSupabaseAuth } from '../../context/SupabaseAuthContext';
 import { describeAuthCallbackError } from '../../lib/supabase';
+import { SupabaseSetupNotice } from '../components/SupabaseSetupNotice';
 
 /**
  * Reset Password is the landing page for a Supabase Auth recovery email.
@@ -50,6 +51,7 @@ export const ResetPasswordPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notConfigured, setNotConfigured] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
   useEffect(() => {
@@ -95,7 +97,10 @@ export const ResetPasswordPage: React.FC = () => {
       if (proof.kind === 'supabase') void signOut();
     } catch (err) {
       if (err instanceof ApiError) {
-        if (err.status === 429) {
+        if (err.code === 'not_configured') {
+          setNotConfigured(true);
+          setError(null);
+        } else if (err.status === 429) {
           setError('Too many attempts. Please wait a minute and try again.');
         } else if (err.status === 503) {
           setError(err.message || 'The studio server cannot verify the link right now. Please try again shortly.');
@@ -134,6 +139,8 @@ export const ResetPasswordPage: React.FC = () => {
             </p>
           </div>
 
+          {(!supabaseConfigured || notConfigured) && <SupabaseSetupNotice />}
+
           {error && (
             <div
               role="alert"
@@ -144,7 +151,20 @@ export const ResetPasswordPage: React.FC = () => {
             </div>
           )}
 
-          {isSuccess ? (
+          {!supabaseConfigured && !isSuccess ? (
+            <div className="space-y-4 text-center">
+              <p className="text-xs font-semibold text-inksoft">
+                Password reset needs Supabase Auth. Once the two variables above are set, request a fresh reset link
+                and open it from your inbox.
+              </p>
+              <Link
+                to="/admin/login"
+                className="text-xs font-bold uppercase tracking-wider text-inksoft hover:text-ink"
+              >
+                Back to Sign In
+              </Link>
+            </div>
+          ) : isSuccess ? (
             <div className="space-y-4 text-center">
               <div className="flex items-center justify-center gap-2 rounded-xl border-2 border-moss bg-moss/10 px-4 py-3 text-sm font-semibold text-moss">
                 <CheckCircle2 size={18} />

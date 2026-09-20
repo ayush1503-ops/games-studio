@@ -8,6 +8,9 @@ import { z } from 'zod';
 import { useAuth } from '../context/AuthContext';
 import { notify } from '../utils/toast';
 import { describeLoginError, type LoginErrorInfo } from '../utils/login-error';
+import { ApiError } from '../utils/api';
+import { isSupabaseConfigured } from '../../lib/supabase';
+import { SupabaseSetupNotice } from '../components/SupabaseSetupNotice';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -23,6 +26,8 @@ export const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<LoginErrorInfo | null>(null);
+  const [notConfigured, setNotConfigured] = useState(!isSupabaseConfigured());
+  const supabaseConfigured = isSupabaseConfigured();
 
   const from = (location.state as { from?: Location })?.from?.pathname || '/admin';
 
@@ -44,7 +49,12 @@ export const LoginPage: React.FC = () => {
     } catch (err) {
       // Show what actually went wrong (wrong password, rate limit, lockout,
       // unreachable API) instead of always blaming the credentials.
-      setError(describeLoginError(err));
+      if (err instanceof ApiError && err.code === 'not_configured') {
+        setNotConfigured(true);
+        setError(null);
+      } else {
+        setError(describeLoginError(err));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -71,6 +81,8 @@ export const LoginPage: React.FC = () => {
               Sign in to manage your game studio
             </p>
           </div>
+
+          {(notConfigured || !supabaseConfigured) && <SupabaseSetupNotice />}
 
           {error && (
             <motion.div

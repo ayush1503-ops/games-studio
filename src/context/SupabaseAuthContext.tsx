@@ -142,7 +142,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     async (email, redirectTo) => {
       if (!supabase) return { error: NotConfiguredError as AuthError };
       return supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectTo ?? `${window.location.origin}/reset-password`,
+        redirectTo: redirectTo ?? `${window.location.origin}/admin/reset-password`,
       });
     },
     []

@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Mail, ArrowLeft, CheckCircle2, AlertCircle, ExternalLink } from 'lucide-react';
 import { motion } from 'motion/react';
 import { ApiError, authApi } from '../utils/api';
+import { isSupabaseConfigured } from '../../lib/supabase';
+import { SupabaseSetupNotice } from '../components/SupabaseSetupNotice';
 
 /**
  * Password recovery is handled directly by Supabase Auth. The editor never
@@ -15,8 +17,10 @@ import { ApiError, authApi } from '../utils/api';
  * `DEV_EXPOSE_RESET_LINK` is enabled on a non-production server.
  */
 export const ForgotPasswordPage: React.FC = () => {
+  const supabaseConfigured = isSupabaseConfigured();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [notConfigured, setNotConfigured] = useState(!isSupabaseConfigured());
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [devResetUrl, setDevResetUrl] = useState<string | null>(null);
   const [deliveryWarning, setDeliveryWarning] = useState<string | null>(null);
@@ -62,7 +66,10 @@ export const ForgotPasswordPage: React.FC = () => {
       }
     } catch (err) {
       if (err instanceof ApiError) {
-        if (err.status === 429) {
+        if (err.code === 'not_configured') {
+          setNotConfigured(true);
+          setError(null);
+        } else if (err.status === 429) {
           setError('Too many reset attempts. Please wait a minute and try again.');
         } else if (err.status === 400 && err.fields.length > 0) {
           setError(err.fields.map((field) => field.message).join(' '));
@@ -99,6 +106,8 @@ export const ForgotPasswordPage: React.FC = () => {
               Enter your admin email and we'll send a reset link to your inbox
             </p>
           </div>
+
+          {(notConfigured || !supabaseConfigured) && <SupabaseSetupNotice />}
 
           {error && (
             <div
@@ -188,7 +197,8 @@ export const ForgotPasswordPage: React.FC = () => {
 
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || notConfigured || !supabaseConfigured}
+                title={notConfigured || !supabaseConfigured ? 'Configure Supabase first — see the notice above.' : undefined}
                 className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-ink bg-coral px-6 py-3.5 text-sm font-extrabold uppercase tracking-wide text-white shadow-sticker hover:bg-coraldeep cursor-pointer disabled:opacity-60"
               >
                 {isLoading ? 'Sending…' : 'Send Reset Link'}
