@@ -3,23 +3,11 @@ import { Link } from 'react-router-dom';
 import { Mail, ArrowLeft, CheckCircle2, AlertCircle, ExternalLink } from 'lucide-react';
 import { motion } from 'motion/react';
 import { ApiError, authApi } from '../utils/api';
-import { supabase } from '../../lib/supabase';
 
 /**
- * Forgot Password — wired to the studio API (`POST /api/auth/forgot-password`).
- *
- * WHY THE BROWSER DOES NOT CALL SUPABASE DIRECTLY:
- * `LoginPage` signs in through `authApi.login()` → `POST /api/auth/login`,
- * which checks a bcrypt hash in the `admin_users` table. Calling Supabase's
- * `auth.resetPasswordForEmail` from here would let you set a password in a
- * different credential store (`auth.users`) that the login form never checks.
- *
- * Instead the API owns the flow: it looks the address up in `admin_users` and
- * then — when the server is connected to Supabase — asks Supabase Auth to
- * deliver its recovery email (no SMTP account needed). Opening that link brings
- * you back to `ResetPasswordPage`, which hands the resulting Supabase session
- * to the API so it can rotate the *console* password. Without Supabase the API
- * falls back to its own SMTP/console mailer and a `?token=` link.
+ * Password recovery is handled directly by Supabase Auth. The editor never
+ * receives or stores a password; opening the emailed link returns to
+ * `ResetPasswordPage` with a short-lived Supabase recovery session.
  *
  * The API never says whether the address exists — it returns the same message
  * for known and unknown emails so the form can't be used to enumerate studio
@@ -51,15 +39,6 @@ export const ForgotPasswordPage: React.FC = () => {
     setDeliveryChannel(null);
 
     try {
-      if (supabase) {
-        try {
-          const redirectTo = `${window.location.origin}/admin/reset-password`;
-          await supabase.auth.resetPasswordForEmail(trimmed, { redirectTo });
-        } catch (supaErr) {
-          console.warn('[Supabase Auth] resetPasswordForEmail notice:', supaErr);
-        }
-      }
-
       const result = await authApi.forgotPassword(trimmed);
 
       setSuccessMessage(
@@ -74,10 +53,8 @@ export const ForgotPasswordPage: React.FC = () => {
       // mail at all, which is a deployment problem the operator must fix.
       if (result.emailDeliveryEnabled === false) {
         setDeliveryWarning(
-          `This deployment cannot send email (${result.emailDeliveryReason ?? 'mail transport not configured'}). ` +
-            'Connect the API to Supabase (SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY) or configure SMTP_HOST, ' +
-            'SMTP_PORT, SMTP_USER, SMTP_PASSWORD and MAIL_FROM — or reset the password on the server with ' +
-            '`npm run admin:set-password --prefix server`.'
+          `Supabase Auth could not send this email (${result.emailDeliveryReason ?? 'mail transport not configured'}). ` +
+            'Check Authentication → SMTP and the project email rate limits, then try again.'
         );
       } else if (result.devDeliveryError) {
         // Development servers report the real reason instead of a silent log line.

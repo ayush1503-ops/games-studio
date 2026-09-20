@@ -15,13 +15,6 @@ export interface AdminUser {
   updatedAt?: string;
   /** Only ever returned for the signed-in user's own profile. */
   sessionCount?: number;
-  /**
-   * True while the account still uses the shared TEMPORARY studio password.
-   * Verified server-side against the stored hash, so changing the password in
-   * Settings clears it immediately. The console never renders the password
-   * itself — only this flag (see `TEMPORARY_PASSWORD.md`).
-   */
-  temporaryPasswordInUse?: boolean;
 }
 
 export interface SessionSummary {
@@ -220,7 +213,7 @@ export interface Subscriber {
   name?: string | null;
   status: 'ACTIVE' | 'UNSUBSCRIBED' | 'BOUNCED';
   source?: string | null;
-  interests?: string[] | null;
+  interests: string[];
   subscribedAt: string;
   unsubscribedAt?: string | null;
 }

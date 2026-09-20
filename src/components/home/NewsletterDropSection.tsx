@@ -17,13 +17,13 @@ export const NewsletterDropSection: React.FC = () => {
   const toggle = (option: string) =>
     setSelected((prev) => (prev.includes(option) ? prev.filter((i) => i !== option) : [...prev, option]));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
       setStatus({ type: 'error', text: 'We need an email to deliver the good stuff.' });
       return;
     }
-    const res = subscribeNewsletter(name, email, selected);
+    const res = await subscribeNewsletter(name, email, selected);
     if (res.success) {
       confetti({ particleCount: 70, spread: 70, origin: { y: 0.8 }, colors: ['#FF5A3C', '#6C4CF1', '#FFC53D', '#A8D92C'] });
       notify('You’re on the list. Welcome aboard!');

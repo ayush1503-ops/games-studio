@@ -4,7 +4,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
  * Supabase client (browser-side, publishable/anon key only).
  *
  * Configuration is read from Vite environment variables:
- *   VITE_SUPABASE_URL      – the project URL, e.g. https://kxirdoacrphluervussu.supabase.co
+ *   VITE_SUPABASE_URL      – the project URL, e.g. https://gwmljctpddazmjmrrqjy.supabase.co
  *                            (always https://<project-ref>.supabase.co — the ref is the
  *                            20-character id in the dashboard URL, *not* a piece of the key)
  *   VITE_SUPABASE_ANON_KEY – the publishable/anon key (safe to expose)

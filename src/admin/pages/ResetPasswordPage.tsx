@@ -4,31 +4,13 @@ import { Lock, Eye, EyeOff, CheckCircle2, AlertCircle, Loader2, MailCheck } from
 import { motion } from 'motion/react';
 import { ApiError, authApi } from '../utils/api';
 import { useSupabaseAuth } from '../../context/SupabaseAuthContext';
-import { describeAuthCallbackError, supabase } from '../../lib/supabase';
+import { describeAuthCallbackError } from '../../lib/supabase';
 
 /**
- * Reset Password — the landing page of the reset email.
- *
- * Two kinds of link arrive here, and both end in the same API call:
- *
- * 1. Supabase Auth (default when the API has SUPABASE_URL + service key).
- *    `POST /api/auth/forgot-password` asks Supabase to email its recovery
- *    link. Opening it verifies the token at Supabase, which redirects back to
- *    `/admin/reset-password#access_token=…&type=recovery`. The Supabase SDK
- *    turns that into a session (`useSupabaseAuth().session`) and we send its
- *    access token to `POST /api/auth/reset-password` as
- *    `{ supabaseAccessToken, newPassword }`. The API checks the session with
- *    Supabase, confirms it was created from a recovery email, matches the
- *    email to an admin account and rotates `admin_users.password_hash`.
- *
- * 2. SMTP / console mailer (when Supabase is not configured on the API).
- *    The link looks like `/admin/reset-password?token=<48-byte token>` and
- *    we post `{ token, newPassword }` instead.
- *
- * Either way the server enforces the password policy (12+ chars, a letter and
- * a number — see `checkPasswordPolicy`), and revokes every existing session.
- * The checks below mirror that policy so the user gets feedback before a round
- * trip, but the server remains the authority.
+ * Reset Password is the landing page for a Supabase Auth recovery email.
+ * The SDK turns the emailed link into a short-lived recovery session; the
+ * password is changed only through Supabase Auth. The checks below provide
+ * useful client feedback while Supabase remains the authority.
  */
 const MIN_PASSWORD_LENGTH = 12;
 
@@ -103,14 +85,6 @@ export const ResetPasswordPage: React.FC = () => {
     setError(null);
 
     try {
-      if (supabase && (proof.kind === 'supabase' || session)) {
-        try {
-          await supabase.auth.updateUser({ password: newPassword });
-        } catch (supaErr) {
-          console.warn('[Supabase Auth] updateUser notice:', supaErr);
-        }
-      }
-
       await authApi.resetPassword(
         proof.kind === 'token' ? { token: proof.token } : { supabaseAccessToken: proof.accessToken },
         newPassword

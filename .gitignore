@@ -1,22 +1,12 @@
 node_modules/
 dist/
 .next/
-server/dist/
 .vercel/
 
 # Environment files: never commit real secrets
 .env
 .env.local
 .env.production
-server/.env
-server/.env.local
-
-# Local Postgres data directory (dev only, lives outside the repo by default)
-server/.pgdata/
-.pgdata/
-
-# User uploads (content lives in the database + object storage in production)
-server/uploads/
 
 # Logs and OS noise
 *.log
@@ -27,4 +17,3 @@ Thumbs.db
 # Test/report output
 coverage/
 *.tsbuildinfo
-.vercel

@@ -19,7 +19,7 @@ interface SettingsForm {
 export const SettingsPage: React.FC = () => {
   const { user: currentUser } = useAuth();
   const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN';
-  const isPrimaryAdmin = currentUser?.email?.toLowerCase() === 'brainchildgamesin@gmail.com';
+  const isPrimaryAdmin = currentUser?.email?.toLowerCase() === 'abhaypoptani@gmail.com';
 
   const [settings, setSettings] = useState<SettingsForm>({
     siteName: 'Brainchild Games',
@@ -196,7 +196,7 @@ export const SettingsPage: React.FC = () => {
         </p>
       </div>
 
-      {/* Password Change — Available to ALL admins, especially primary brainchildgamesin@gmail.com */}
+      {/* Password Change — Available to ALL admins, especially primary abhaypoptani@gmail.com */}
       <div className="rounded-2xl border-2 border-ink bg-cream p-6 shadow-sticker-sm space-y-5">
         <h2 className="font-display text-lg font-bold uppercase tracking-tight text-ink border-b-2 border-ink/10 pb-3 flex items-center gap-2">
           <Lock className="text-grape" size={18} /> Change Your Password
@@ -206,7 +206,7 @@ export const SettingsPage: React.FC = () => {
           <p className="font-bold text-ink">Signed in as: <span className="text-grape">{currentUser?.email}</span> ({currentUser?.role})</p>
           {isPrimaryAdmin && (
             <p className="mt-1 font-medium text-inksoft">
-              Primary admin <span className="font-bold text-grape">brainchildgamesin@gmail.com</span> — set a private password here, then use it to sign in. The console never displays the active password. Production and CLI resets come from the <code className="font-mono">ADMIN_PASSWORD</code> env var or <code className="font-mono">npm run admin:set-password</code>.
+              Your password is managed by Supabase Auth and is never displayed or stored by the editor. Use the password recovery link if you no longer remember it.
             </p>
           )}
           {!isPrimaryAdmin && (
@@ -406,7 +406,7 @@ export const SettingsPage: React.FC = () => {
                 </div>
                 <div className="flex justify-between py-1 border-t border-ink/10 mt-2 pt-2">
                   <span className="text-inksoft">Primary Admin:</span>
-                  <span className="font-bold text-grape">brainchildgamesin@gmail.com</span>
+                  <span className="font-bold text-grape">abhaypoptani@gmail.com</span>
                 </div>
               </div>
             </div>

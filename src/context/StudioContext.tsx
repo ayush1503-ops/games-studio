@@ -8,8 +8,8 @@ import { fetchSite, sendContactMessage, subscribeToNewsletter, SitePayload } fro
 /**
  * Studio context — the public website's window into the CMS.
  *
- * Content now comes from `GET /api/public/site`: whatever the studio publishes
- * in the admin console appears here on the next load, with no code changes.
+ * Content is loaded directly from Supabase: whatever the studio publishes
+ * in the editor appears here on the next load, with no code changes.
  * Bundled sample data is only used until (or if) that request cannot be made,
  * so the site never renders an empty shell on a cold API.
  */
@@ -202,6 +202,7 @@ export const StudioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   ): Promise<{ success: boolean; message: string }> => {
     try {
       const data = await subscribeToNewsletter({ name: name || undefined, email, interests });
+      if (!data.ok) return { success: false, message: data.message };
       const subscriber: NewsletterSubscriber = {
         id: `local-${Date.now()}`,
         email,
@@ -232,6 +233,7 @@ export const StudioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         budget: data.budget,
         message: data.message,
       });
+      if (!response.ok) return { success: false, message: response.message };
       setContactMessages((prev) => [
         { ...data, id: `local-${Date.now()}`, createdAt: new Date().toISOString().slice(0, 10), status: 'unread' },
         ...prev,

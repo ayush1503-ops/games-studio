@@ -1,9 +1,19 @@
+-- Brainchild Games — Supabase SQL Editor setup
+-- Project: gwmljctpddazmjmrrqjy
+--
+-- Run this entire file in Supabase Dashboard → SQL Editor. It creates the
+-- content model, RLS policies, storage buckets and safe public-form access.
+-- It intentionally does not create a user or contain a password.
+--
 -- =============================================================================
 --  BRAINCHILD GAMES — SUPABASE SETUP (run this in one go)
 -- -----------------------------------------------------------------------------
 --  Open Supabase Dashboard → SQL Editor → New Query → paste this entire file
---  → Run. After it completes, run the "PROMOTE FIRST ADMIN" block at the very
---  bottom with your own email address.
+--  → Run. Then create an account in Authentication → Users with a password
+--  chosen by you and run the promotion block at the bottom.
+--
+--  This script never creates, stores, or assumes a password. Supabase Auth owns
+--  credentials; the public API key belongs only in the browser environment.
 --
 --  NOTE: Tables are created BEFORE any functions/policies that reference them
 --  to avoid "relation does not exist" errors.
@@ -40,6 +50,7 @@ $$;
 -- Studio admin team
 CREATE TABLE IF NOT EXISTS admin_users (
   id         uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  email      text,
   name       text,
   role       text    NOT NULL DEFAULT 'EDITOR'
                CHECK (role IN ('SUPER_ADMIN','ADMIN','EDITOR')),
@@ -47,6 +58,8 @@ CREATE TABLE IF NOT EXISTS admin_users (
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
+
+ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS email text;
 
 CREATE TABLE IF NOT EXISTS admin_activity (
   id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -412,6 +425,9 @@ CREATE POLICY jobs_public_read          ON jobs               FOR SELECT TO anon
 DROP POLICY IF EXISTS content_public_read       ON website_content;
 CREATE POLICY content_public_read       ON website_content    FOR SELECT TO anon, authenticated
   USING ((value->>'public')::boolean = true);
+DROP POLICY IF EXISTS settings_public_read       ON site_settings;
+CREATE POLICY settings_public_read       ON site_settings    FOR SELECT TO anon, authenticated
+  USING (true);
 DROP POLICY IF EXISTS media_public_read         ON media_assets;
 CREATE POLICY media_public_read         ON media_assets       FOR SELECT TO anon, authenticated USING (true);
 
@@ -540,159 +556,27 @@ INSERT INTO jobs (title, department, location, type, experience, description,
    'OPEN', to_char(current_date, 'YYYY-MM-DD'), 0)
 ON CONFLICT DO NOTHING;
 
--- Auto-promote primary admin brainchildgamesin@gmail.com on future signups.
--- AFTER INSERT (not BEFORE): profiles/admin_users reference auth.users(id), so
--- the row must already exist. The body is exception-guarded so nothing in the
--- public schema can ever block creating the auth user (see migrations/0006).
-CREATE OR REPLACE FUNCTION auto_promote_primary_admin()
-RETURNS trigger
-LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-BEGIN
-  IF lower(NEW.email) = 'brainchildgamesin@gmail.com' THEN
-    BEGIN
-      INSERT INTO profiles (id, display_name, email_verified)
-      VALUES (NEW.id, 'Brainchild Games', true)
-      ON CONFLICT (id) DO UPDATE SET
-        display_name   = 'Brainchild Games',
-        email_verified = true,
-        updated_at     = now();
-
-      INSERT INTO admin_users (id, name, role, is_active)
-      VALUES (NEW.id, 'Brainchild Games', 'SUPER_ADMIN', true)
-      ON CONFLICT (id) DO UPDATE SET
-        role       = 'SUPER_ADMIN',
-        is_active  = true,
-        name       = 'Brainchild Games',
-        updated_at = now();
-
-      UPDATE auth.users
-      SET email_confirmed_at   = COALESCE(email_confirmed_at, now()),
-          confirmation_token   = NULL,
-          confirmation_sent_at = NULL
-      WHERE id = NEW.id
-        AND email_confirmed_at IS NULL;
-    EXCEPTION WHEN OTHERS THEN
-      RAISE WARNING 'auto_promote_primary_admin skipped for %: % (%)', NEW.id, SQLERRM, SQLSTATE;
-    END;
-  END IF;
-  RETURN NEW;
-END;
-$$;
-
-DROP TRIGGER IF EXISTS trg_auto_promote_primary_admin ON auth.users;
-CREATE TRIGGER trg_auto_promote_primary_admin
-AFTER INSERT ON auth.users
-FOR EACH ROW EXECUTE FUNCTION auto_promote_primary_admin();
-
 COMMIT;
 
--- =============================================================================
---  AFTER RUNNING THE ABOVE:
---  1. Create yourself a user in  Authentication → Users → Add user
---     (Primary admin: brainchildgamesin@gmail.com is always valid SUPER_ADMIN)
---  2. Come back here, edit the email below if needed, and run this statement:
---
---     INSERT INTO admin_users (id, name, role, is_active)
---     SELECT id, 'Brainchild Games', 'SUPER_ADMIN', true
---     FROM auth.users WHERE email = 'brainchildgamesin@gmail.com'
---     ON CONFLICT (id) DO UPDATE SET role = 'SUPER_ADMIN', is_active = true, name = 'Brainchild Games';
---
---  You can also promote any additional admin:
---     INSERT INTO admin_users (id, name, role, is_active)
---     SELECT id, 'Studio Admin', 'SUPER_ADMIN', true
---     FROM auth.users WHERE email = 'you@brainchild.games';
--- =============================================================================
+-- ============================================================================
+-- CREATE YOUR FIRST STUDIO ADMIN (run after creating the user in Auth → Users)
+-- This block is ready for the studio owner email below. Change only the
+-- display name if you want a different label. Do not add a password here.
+-- The password is set privately in Supabase Auth when you create the user.
+-- ============================================================================
+INSERT INTO admin_users (id, email, name, role, is_active)
+SELECT id, lower(email), 'Studio Admin', 'SUPER_ADMIN', true
+FROM auth.users
+WHERE lower(email) = lower('abhaypoptani@gmail.com')
+ON CONFLICT (id) DO UPDATE SET
+  email = EXCLUDED.email,
+  name = EXCLUDED.name,
+  role = 'SUPER_ADMIN',
+  is_active = true,
+  updated_at = now();
 
--- Direct provision of primary admin account in auth.users with password 'Brainchild@2026'
-DO $$
-DECLARE
-  v_user_id uuid;
-  v_encrypted_pw text;
-BEGIN
-  v_encrypted_pw := crypt('Brainchild@2026', gen_salt('bf'));
-  
-  -- Check if user already exists
-  SELECT id INTO v_user_id FROM auth.users WHERE lower(email) = 'brainchildgamesin@gmail.com';
-  
-  IF v_user_id IS NULL THEN
-    v_user_id := gen_random_uuid();
-    INSERT INTO auth.users (
-      instance_id,
-      id,
-      aud,
-      role,
-      email,
-      encrypted_password,
-      email_confirmed_at,
-      raw_app_meta_data,
-      raw_user_meta_data,
-      created_at,
-      updated_at,
-      confirmation_token,
-      recovery_token
-    ) VALUES (
-      '00000000-0000-0000-0000-000000000000',
-      v_user_id,
-      'authenticated',
-      'authenticated',
-      'brainchildgamesin@gmail.com',
-      v_encrypted_pw,
-      now(),
-      '{"provider":"email","providers":["email"]}'::jsonb,
-      '{"display_name":"Brainchild Games"}'::jsonb,
-      now(),
-      now(),
-      '',
-      ''
-    );
-  ELSE
-    -- If already exists, ensure password is set to Brainchild@2026 and email is confirmed
-    UPDATE auth.users
-    SET encrypted_password = v_encrypted_pw,
-        email_confirmed_at = COALESCE(email_confirmed_at, now()),
-        updated_at = now()
-    WHERE id = v_user_id;
-  END IF;
-
-  -- Ensure in admin_users
-  INSERT INTO public.admin_users (id, name, role, is_active)
-  VALUES (v_user_id, 'Brainchild Games', 'SUPER_ADMIN', true)
-  ON CONFLICT (id) DO UPDATE SET
-    role = 'SUPER_ADMIN',
-    is_active = true,
-    name = 'Brainchild Games',
-    updated_at = now();
-
-  -- Ensure in profiles
-  INSERT INTO public.profiles (id, display_name, email_verified, role)
-  VALUES (v_user_id, 'Brainchild Games', true, 'PLAYER')
-  ON CONFLICT (id) DO UPDATE SET
-    display_name = 'Brainchild Games',
-    email_verified = true,
-    updated_at = now();
-END $$;
-
--- Clean slate for games: Removes demo games so you can put all your own games from the Admin Panel
-TRUNCATE TABLE games, gameplay_mechanics, store_links CASCADE;
-
--- Customer subscribers: Full management for studio admin
-INSERT INTO subscribers (email, name, interests, status, source) VALUES
-  ('alex.chen@pixelcraft.io', 'Alex Chen', ARRAY['Dev Diary','Sky Adventure'], 'ACTIVE', 'Landing Page Hero'),
-  ('sarah.miller@gamerspulse.com', 'Sarah Miller', ARRAY['Sci-Fi','Action'], 'ACTIVE', 'Games Detail Page'),
-  ('marcus.vance@indiegaming.net', 'Marcus Vance', ARRAY['Community','Announcements'], 'ACTIVE', 'Newsletter Footer'),
-  ('elena.rostova@questlog.gg', 'Elena Rostova', ARRAY['Roguelike','Dev Diary'], 'ACTIVE', 'Early Access Modal'),
-  ('tetsuo.gaming@neo-tokyo.jp', 'Tetsuo Shima', ARRAY['Arcade','Racing'], 'ACTIVE', 'Trailer Link')
-ON CONFLICT (email) DO NOTHING;
-
--- Customer contact messages & inquiries: Full review & reply for studio admin
-INSERT INTO contact_messages (name, email, company, subject, project_type, budget, message, status, notes) VALUES
-  ('Jordan Rivera', 'jordan@stellaris-press.com', 'Stellaris Press', 'Press & Media Interview Request', 'Press / Media Inquiry', NULL, 'Hello Brainchild team! We would love to feature your studio on our upcoming indie showcase issue and schedule a brief Q&A with your creative director.', 'UNREAD', ''),
-  ('David Zhao', 'd.zhao@apexpublishing.co.uk', 'Apex Interactive Publishing', 'Publishing & Console Porting Partnership', 'Publishing Partnership', '$150,000 - $300,000', 'We specialize in bringing indie hits to Asian console markets. Would love to connect regarding distribution and porting possibilities.', 'REVIEWED', 'Followed up via introductory email.'),
-  ('Mira Kowalska', 'mira@synthwavefest.org', 'Synthwave Festival', 'Music & Audio Licensing Inquiry', 'Music & Audio License', '$5,000', 'Can we license your original audio tracks for our annual festival trailer stream? Looking forward to your commercial licensing terms.', 'READ', '')
-ON CONFLICT DO NOTHING;
-
--- Ensure primary admin brainchildgamesin@gmail.com is SUPER_ADMIN if the auth user already exists
-INSERT INTO admin_users (id, name, role, is_active)
-SELECT id, 'Brainchild Games', 'SUPER_ADMIN', true
-FROM auth.users WHERE email = 'brainchildgamesin@gmail.com'
-ON CONFLICT (id) DO UPDATE SET role = 'SUPER_ADMIN', is_active = true, name = 'Brainchild Games', updated_at = now();
+-- Verify the account is ready.
+SELECT au.id, au.email, au.name, au.role, au.is_active
+FROM admin_users au
+JOIN auth.users u ON u.id = au.id
+WHERE lower(u.email) = lower('abhaypoptani@gmail.com');
