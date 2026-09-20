@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Shield, Plus, Lock, CheckCircle2, XCircle, Trash2, Edit3, AlertOctagon } from 'lucide-react';
+import { Users, Plus, CheckCircle2, XCircle, Trash2, Edit3, AlertOctagon } from 'lucide-react';
 import { teamApi, ApiError } from '../utils/api';
 import type { TeamMember } from '../types';
 import { useAuth } from '../context/AuthContext';
@@ -25,14 +25,6 @@ export const UsersPage: React.FC = () => {
   const [deleteTarget, setDeleteTarget] = useState<AdminUserItem | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Form states
-  const [createForm, setCreateForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    role: 'EDITOR' as 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR'
-  });
-
   const [editForm, setEditForm] = useState({
     name: '',
     role: 'EDITOR' as 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR',
@@ -55,37 +47,6 @@ export const UsersPage: React.FC = () => {
   useEffect(() => {
     loadUsers();
   }, [isSuperAdmin]);
-
-  // The API mints a one-time password for newly created admins; surface it once.
-  const [issuedCredential, setIssuedCredential] = useState<{ email: string; password: string } | null>(null);
-
-  // Handle Create Admin
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!createForm.email) {
-      notify('Email is required', 'error');
-      return;
-    }
-    setIsSaving(true);
-    try {
-      const result = await teamApi.create({
-        email: createForm.email,
-        name: createForm.name || createForm.email.split('@')[0],
-        role: createForm.role,
-      });
-      notify('Admin user created successfully', 'success');
-      if (result.oneTimePassword) {
-        setIssuedCredential({ email: createForm.email, password: result.oneTimePassword });
-      }
-      setIsCreateOpen(false);
-      setCreateForm({ name: '', email: '', password: '', role: 'EDITOR' });
-      loadUsers();
-    } catch (err) {
-      notify(errorMessage(err, 'Failed to create user'), 'error');
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   // Handle Edit Admin
   const handleEdit = async (e: React.FormEvent) => {
@@ -148,30 +109,9 @@ export const UsersPage: React.FC = () => {
           onClick={() => setIsCreateOpen(true)}
           className="flex items-center gap-2 rounded-xl border-2 border-ink bg-coral px-4 py-2.5 text-xs font-extrabold uppercase tracking-wider text-white shadow-sticker hover:bg-coraldeep cursor-pointer"
         >
-          <Plus size={16} /> Create New Admin
+          <Plus size={16} /> Add Admin
         </button>
       </div>
-
-      {/* One-time password for a freshly created admin */}
-      {issuedCredential && (
-        <div className="flex flex-col gap-3 rounded-2xl border-2 border-moss bg-moss/10 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-xs font-semibold text-ink">
-            <p className="font-extrabold uppercase tracking-wider text-moss">One-time password issued for {issuedCredential.email}</p>
-            <p className="mt-1 text-inksoft">Share it securely — the admin must change it after first sign-in.</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <code className="rounded-lg border-2 border-moss/30 bg-paper px-3 py-2 font-mono text-sm font-bold text-ink">
-              {issuedCredential.password}
-            </code>
-            <button
-              onClick={() => setIssuedCredential(null)}
-              className="rounded-lg border-2 border-ink/15 bg-cream px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-ink hover:bg-sand"
-            >
-              Dismiss
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Users Table */}
       <div className="rounded-2xl border-2 border-ink bg-cream overflow-hidden shadow-sticker-sm">
@@ -257,75 +197,33 @@ export const UsersPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Create Modal */}
+      {/* Add-admin instructions */}
       {isCreateOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm">
           <div className="relative w-full max-w-md rounded-[24px] border-2 border-ink bg-cream p-6 shadow-lift">
-            <h2 className="font-display text-xl font-bold uppercase tracking-tight text-ink mb-4">
-              Create Admin User
-            </h2>
-
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold uppercase text-inksoft">Name</label>
-                <input
-                  type="text"
-                  value={createForm.name}
-                  onChange={e => setCreateForm({ ...createForm, name: e.target.value })}
-                  placeholder="Elena Vance"
-                  className="w-full rounded-xl border-2 border-ink/15 bg-paper px-3 py-2 text-xs font-semibold text-ink"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold uppercase text-inksoft">Email *</label>
-                <input
-                  type="email"
-                  value={createForm.email}
-                  onChange={e => setCreateForm({ ...createForm, email: e.target.value })}
-                  placeholder="elena@brainchild.games"
-                  className="w-full rounded-xl border-2 border-ink/15 bg-paper px-3 py-2 text-xs font-semibold text-ink"
-                  required
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold uppercase text-inksoft">Starting Password</label>
-                <div className="rounded-xl border-2 border-dashed border-ink/20 bg-sand/40 px-3 py-2 text-[11px] font-medium text-inksoft">
-                  The studio generates a one-time password and shares it with you right after creation — the new admin is asked to change it on first sign-in.
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold uppercase text-inksoft">Role</label>
-                <select
-                  value={createForm.role}
-                  onChange={e => setCreateForm({ ...createForm, role: e.target.value as any })}
-                  className="w-full rounded-xl border-2 border-ink/15 bg-paper px-3 py-2 text-xs font-semibold text-ink"
-                >
-                  <option value="EDITOR">Content Admin (Editor)</option>
-                  <option value="ADMIN">Studio Admin</option>
-                  <option value="SUPER_ADMIN">Super Admin</option>
-                </select>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t-2 border-ink/10">
-                <button
-                  type="button"
-                  onClick={() => setIsCreateOpen(false)}
-                  className="rounded-xl border-2 border-ink/20 px-4 py-2 text-xs font-bold uppercase text-ink"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="rounded-xl border-2 border-ink bg-coral px-5 py-2 text-xs font-extrabold uppercase text-white shadow-sticker"
-                >
-                  {isSaving ? 'Creating...' : 'Create Admin'}
-                </button>
-              </div>
-            </form>
+            <h2 className="font-display text-xl font-bold uppercase tracking-tight text-ink">Add an admin</h2>
+            <p className="mt-3 text-sm font-medium leading-relaxed text-inksoft">
+              Create the user first in Supabase Authentication with a password you choose privately. Then run the
+              promotion block in <code className="font-mono text-ink">supabase/editor_setup.sql</code> using that email.
+              No password is generated or displayed by this editor.
+            </p>
+            <div className="mt-5 flex justify-end gap-3 border-t-2 border-ink/10 pt-4">
+              <button
+                type="button"
+                onClick={() => setIsCreateOpen(false)}
+                className="rounded-xl border-2 border-ink/20 px-4 py-2 text-xs font-bold uppercase text-ink"
+              >
+                Close
+              </button>
+              <a
+                href="https://supabase.com/dashboard/project/gwmljctpddazmjmrrqjy/auth/users"
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-xl border-2 border-ink bg-grape px-5 py-2 text-xs font-extrabold uppercase text-white shadow-sticker"
+              >
+                Open Supabase Auth
+              </a>
+            </div>
           </div>
         </div>
       )}

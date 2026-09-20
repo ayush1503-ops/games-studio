@@ -20,18 +20,23 @@ export const ContactForm: React.FC<ContactFormProps> = ({ compact = false }) => 
   const [category, setCategory] = useState<Category>('Player Support');
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email || !message) return;
 
-    submitContact({
+    const result = await submitContact({
       name,
       email,
       company: company || undefined,
       subject: subject || `${category} inquiry from ${name}`,
       projectType: category,
-      message
+      message,
     });
+
+    if (!result.success) {
+      notify(result.message);
+      return;
+    }
 
     confetti({
       particleCount: 90,
@@ -39,7 +44,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ compact = false }) => 
       origin: { y: 0.7 },
       colors: ['#FF5A3C', '#6C4CF1', '#FFC53D', '#A8D92C', '#2FB9DD']
     });
-    notify('Message sent — Pix is fetching the team!');
+    notify(result.message || 'Message sent — Pix is fetching the team!');
     setIsSubmitted(true);
   };
 

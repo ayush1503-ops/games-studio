@@ -2,21 +2,17 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
   "outputDirectory": "dist",
-  "installCommand": "npm install",
+  "installCommand": "npm ci",
   "buildCommand": "npm run build",
-  "functions": {
-    "api/[...path].ts": {
-      "maxDuration": 60,
-      "includeFiles": "server/**"
+  "build": {
+    "env": {
+      "VITE_SUPABASE_URL": "https://gwmljctpddazmjmrrqjy.supabase.co",
+      "VITE_SUPABASE_ANON_KEY": "sb_publishable_xhw60pjcpu9c-s981bHCfg_JrPMD-kd"
     }
   },
   "rewrites": [
     {
-      "source": "/health",
-      "destination": "/api/health"
-    },
-    {
-      "source": "/((?!api(?:/|$)).*)",
+      "source": "/((?!assets/|favicon.ico).*)",
       "destination": "/index.html"
     }
   ],
@@ -26,7 +22,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vitals.vercel-insights.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests"
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://gwmljctpddazmjmrrqjy.supabase.co wss://gwmljctpddazmjmrrqjy.supabase.co https://vitals.vercel-insights.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests"
         },
         {
           "key": "X-Content-Type-Options",
@@ -46,11 +42,5 @@
         }
       ]
     }
-  ],
-  "build": {
-    "env": {
-      "VITE_SUPABASE_URL": "https://kxirdoacrphluervussu.supabase.co",
-      "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4aXJkb2FjcnBobHVlcnZ1c3N1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk0NjcyMDksImV4cCI6MjEwNTA0MzIwOX0.c5o1bTXXBMyPigIWdc8NXkfJTq6LKUP402hAMoNctAg"
-    }
-  }
+  ]
 }

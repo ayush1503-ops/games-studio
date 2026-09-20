@@ -104,7 +104,7 @@ export const LoginPage: React.FC = () => {
                   className={`w-full rounded-xl border-2 bg-cream px-4 py-3 pl-11 text-sm font-semibold text-ink placeholder-inksoft/60 transition-colors focus:border-grape focus:outline-none ${
                     errors.email ? 'border-coral' : 'border-ink/15'
                   }`}
-                  placeholder="brainchildgamesin@gmail.com"
+                  placeholder="abhaypoptani@gmail.com"
                   disabled={isLoading}
                   aria-invalid={errors.email ? 'true' : 'false'}
                   aria-describedby={errors.email ? 'email-error' : undefined}
@@ -115,7 +115,7 @@ export const LoginPage: React.FC = () => {
                   </p>
                 )}
                 <p className="mt-1.5 text-[10px] font-bold uppercase tracking-wider text-ink/50">
-                  Primary admin: <span className="text-grape">brainchildgamesin@gmail.com</span> is always valid
+                  Primary admin: <span className="text-grape">abhaypoptani@gmail.com</span> is always valid
                 </p>
               </div>
             </div>
