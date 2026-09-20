@@ -5,6 +5,7 @@ import type { TeamMember } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { notify } from '../utils/toast';
 import { DeleteConfirmModal } from '../components/DeleteConfirmModal';
+import { supabaseDashboardUrl } from '../../lib/supabase';
 
 function errorMessage(err: unknown, fallback: string): string {
   return err instanceof ApiError ? err.message : fallback;
@@ -15,6 +16,12 @@ type AdminUserItem = TeamMember;
 export const UsersPage: React.FC = () => {
   const { user: currentUser } = useAuth();
   const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN';
+
+  /**
+   * Shortcut into this project's Supabase Auth user list. Null (and therefore
+   * hidden) when the Supabase project ref is not configured.
+   */
+  const supabaseAuthUsersUrl = supabaseDashboardUrl('/auth/users');
 
   const [users, setUsers] = useState<AdminUserItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -215,14 +222,16 @@ export const UsersPage: React.FC = () => {
               >
                 Close
               </button>
-              <a
-                href="https://supabase.com/dashboard/project/gwmljctpddazmjmrrqjy/auth/users"
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-xl border-2 border-ink bg-grape px-5 py-2 text-xs font-extrabold uppercase text-white shadow-sticker"
-              >
-                Open Supabase Auth
-              </a>
+              {supabaseAuthUsersUrl && (
+                <a
+                  href={supabaseAuthUsersUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-xl border-2 border-ink bg-grape px-5 py-2 text-xs font-extrabold uppercase text-white shadow-sticker"
+                >
+                  Open Supabase Auth
+                </a>
+              )}
             </div>
           </div>
         </div>
