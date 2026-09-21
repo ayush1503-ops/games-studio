@@ -277,6 +277,63 @@ function mapContact(row: any): ContactMessage {
   return { id: row.id, name: row.name, email: row.email, company: row.company, subject: row.subject, projectType: row.project_type, budget: row.budget, message: row.message, status: row.status, notes: row.notes ?? null, handledById: row.handled_by, handledAt: row.handled_at, createdAt: row.created_at };
 }
 
+export function parseRecoveryInput(input?: string): {
+  kind: 'otp' | 'token_hash' | 'session' | 'code' | 'none';
+  token?: string;
+  code?: string;
+  accessToken?: string;
+  refreshToken?: string;
+} {
+  if (!input) return { kind: 'none' };
+  const str = input.trim();
+  if (/^\d{6}$/.test(str)) {
+    return { kind: 'otp', code: str };
+  }
+  try {
+    const url = new URL(str);
+    const hashParams = new URLSearchParams(url.hash.replace(/^#/, ''));
+    const searchParams = url.searchParams;
+
+    const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
+    const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token') || '';
+    if (accessToken) {
+      return { kind: 'session', accessToken, refreshToken };
+    }
+
+    const token = searchParams.get('token') || searchParams.get('token_hash') || hashParams.get('token');
+    if (token) {
+      return { kind: 'token_hash', token };
+    }
+
+    const code = searchParams.get('code') || hashParams.get('code');
+    if (code) {
+      return { kind: 'code', code };
+    }
+  } catch {
+    if (str.includes('token=') || str.includes('token_hash=')) {
+      const match = str.match(/token(?:_hash)?=([a-zA-Z0-9_-]+)/);
+      if (match) return { kind: 'token_hash', token: match[1] };
+    }
+    if (str.includes('code=')) {
+      const match = str.match(/code=([a-zA-Z0-9_.-]+)/);
+      if (match) return { kind: 'code', code: match[1] };
+    }
+    if (str.length >= 20) {
+      return { kind: 'token_hash', token: str };
+    }
+  }
+  return { kind: 'none' };
+}
+
+export interface ResetPasswordProof {
+  token?: string;
+  token_hash?: string;
+  supabaseAccessToken?: string;
+  code?: string;
+  rawInput?: string;
+  email?: string;
+}
+
 export const authApi = {
   async me() {
     const result = await adminRow();
@@ -437,12 +494,110 @@ export const authApi = {
       emailDeliveryReason: undefined as string | undefined,
     };
   },
-  async resetPassword(_proof: { token: string } | { supabaseAccessToken: string }, newPassword: string) {
-    const { error } = await client().auth.updateUser({ password: newPassword });
-    if (error) fail(error, 'The recovery link is invalid or expired.');
-    const { error: sessionError } = await client().auth.signOut({ scope: 'global' });
-    if (sessionError) fail(sessionError, 'Password changed, but other sessions could not be signed out.');
-    return { message: 'Password updated successfully.' };
+  async resetPassword(proof: ResetPasswordProof, newPassword: string) {
+    const authClient = client();
+
+    // 1. Resolve recovery input if rawInput or code or token is provided
+    const parsed = parseRecoveryInput(proof.rawInput);
+
+    if (parsed.kind === 'session' && parsed.accessToken) {
+      try {
+        await authClient.auth.setSession({
+          access_token: parsed.accessToken,
+          refresh_token: parsed.refreshToken || '',
+        });
+      } catch (e) {
+        console.warn('Could not set session from token:', e);
+      }
+    } else if (parsed.kind === 'code' && parsed.code) {
+      try {
+        await authClient.auth.exchangeCodeForSession(parsed.code);
+      } catch (e) {
+        console.warn('Could not exchange code:', e);
+      }
+    } else if (parsed.kind === 'token_hash' && parsed.token) {
+      try {
+        const { error } = await authClient.auth.verifyOtp({
+          token_hash: parsed.token,
+          type: 'recovery',
+        });
+        if (error) fail(error, 'The recovery link is invalid or has expired.');
+      } catch (err) {
+        if (err instanceof ApiError) throw err;
+      }
+    } else if (parsed.kind === 'otp' && parsed.code && proof.email) {
+      try {
+        const { error } = await authClient.auth.verifyOtp({
+          email: proof.email.trim().toLowerCase(),
+          token: parsed.code,
+          type: 'recovery',
+        });
+        if (error) fail(error, 'The 6-digit verification code is invalid or has expired.');
+      } catch (err) {
+        if (err instanceof ApiError) throw err;
+      }
+    } else if (proof.code) {
+      try {
+        await authClient.auth.exchangeCodeForSession(proof.code);
+      } catch (e) {
+        console.warn('Could not exchange code:', e);
+      }
+    } else if (proof.token_hash) {
+      try {
+        const { error } = await authClient.auth.verifyOtp({
+          token_hash: proof.token_hash,
+          type: 'recovery',
+        });
+        if (error) fail(error, 'The recovery link is invalid or has expired.');
+      } catch (err) {
+        if (err instanceof ApiError) throw err;
+      }
+    } else if (proof.token && proof.email) {
+      try {
+        const { error } = await authClient.auth.verifyOtp({
+          email: proof.email.trim().toLowerCase(),
+          token: proof.token.trim(),
+          type: 'recovery',
+        });
+        if (error) fail(error, 'The reset token is invalid or has expired.');
+      } catch (err) {
+        if (err instanceof ApiError) throw err;
+      }
+    }
+
+    // 2. Check if we now have an active session / user
+    const { data: userData } = await authClient.auth.getUser();
+    if (!userData?.user) {
+      throw new ApiError(
+        'Please enter your email and verification code, or paste the link from your reset email.',
+        400,
+        'unverified_recovery'
+      );
+    }
+
+    // 3. Update user password
+    const { data: updateData, error: updateError } = await authClient.auth.updateUser({ password: newPassword });
+    if (updateError) {
+      fail(updateError, 'Failed to update password. Please try requesting a new reset link.');
+    }
+
+    // 4. Invalidate other remote sessions only, preserving the current session
+    try {
+      await authClient.auth.signOut({ scope: 'others' });
+    } catch {
+      // Safe to ignore
+    }
+
+    // 5. Ensure admin permissions and row exist for this user
+    const activeUser = updateData.user ?? userData.user;
+    const { row } = await adminRow(activeUser);
+    const admin = mapAdmin(row, activeUser);
+
+    return {
+      message: 'Password updated successfully.',
+      admin,
+      user: activeUser,
+    };
   },
   async sessions(): Promise<SessionSummary[]> { return []; },
   async revokeSession(_id: string) { /* Supabase manages its refresh-token sessions. */ },

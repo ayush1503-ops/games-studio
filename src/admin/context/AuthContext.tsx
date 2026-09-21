@@ -53,6 +53,7 @@ interface AuthContextValue {
   logout: () => Promise<void>;
   logoutEverywhere: () => Promise<void>;
   refresh: () => Promise<void>;
+  setUserState: (user: AdminUser | null) => void;
   can: (permission: string) => boolean;
 }
 
@@ -61,6 +62,11 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AdminUser | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const setUserState = useCallback((adminUser: AdminUser | null) => {
+    setUser(adminUser);
+    setLoading(false);
+  }, []);
 
   const refresh = useCallback(async () => {
     try {
@@ -110,9 +116,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       logout,
       logoutEverywhere,
       refresh,
+      setUserState,
       can: (permission: string) => can(user?.role, permission),
     }),
-    [user, loading, login, logout, logoutEverywhere, refresh]
+    [user, loading, login, logout, logoutEverywhere, refresh, setUserState]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
