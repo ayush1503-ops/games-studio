@@ -1,28 +1,36 @@
-import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 
 export const AdminLayout: React.FC = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const location = useLocation();
+
+  // Close mobile sidebar drawer whenever route changes
+  useEffect(() => {
+    setIsMobileSidebarOpen(false);
+  }, [location.pathname]);
 
   return (
-    <div className="min-h-screen bg-paper font-body text-ink">
+    <div className="min-h-screen bg-paper font-body text-ink flex flex-col">
       <Sidebar
         isCollapsed={isSidebarCollapsed}
-        onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        onToggle={() => setIsSidebarCollapsed((prev) => !prev)}
+        isMobileOpen={isMobileSidebarOpen}
+        onCloseMobile={() => setIsMobileSidebarOpen(false)}
       />
-      <div className={`transition-all duration-300 ${isSidebarCollapsed ? 'lg:pl-16' : 'lg:pl-64'}`}>
+      <div
+        className={`flex flex-col min-h-screen w-full transition-all duration-300 ease-in-out ${
+          isSidebarCollapsed ? 'lg:pl-16' : 'lg:pl-64'
+        }`}
+      >
         <Header
-          onMenuClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          isMobileMenuOpen={isMobileMenuOpen}
-          onMobileMenuClose={() => setIsMobileMenuOpen(false)}
+          onToggleMobileSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
+          isMobileSidebarOpen={isMobileSidebarOpen}
         />
-        <main className="p-4 sm:p-6 lg:p-8" id="main-content">
-          <div className="mb-4 rounded-2xl border-2 border-grape/20 bg-grape/5 px-4 py-3 text-xs font-semibold text-inksoft">
-            Authentication and password recovery are managed securely by Supabase Auth.
-          </div>
+        <main className="flex-1 p-3.5 sm:p-6 lg:p-8" id="main-content">
           <Outlet />
         </main>
       </div>
