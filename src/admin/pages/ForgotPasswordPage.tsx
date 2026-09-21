@@ -74,12 +74,12 @@ export const ForgotPasswordPage: React.FC = () => {
         } else if (err.status === 400 && err.fields.length > 0) {
           setError(err.fields.map((field) => field.message).join(' '));
         } else if (err.status === 0) {
-          setError('Cannot reach the studio server. Check your connection and try again.');
+          setError('Unable to reach the authentication service. Please check your internet connection or try again in a few moments.');
         } else {
-          setError(err.message || 'Failed to send the reset link. Please try again.');
+          setError(err.message || 'Unable to send the reset link at this time. Please try again.');
         }
       } else {
-        setError('Failed to send the reset link. Please try again.');
+        setError('Unable to send the reset link at this time. Please try again.');
       }
     } finally {
       setIsLoading(false);

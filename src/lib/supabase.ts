@@ -16,8 +16,40 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
  * Both are validated at import time so misconfiguration is loud, not silent.
  */
 
-const url = (import.meta.env.VITE_SUPABASE_URL ?? '').trim();
-const anonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY ?? '').trim();
+export const DEFAULT_SUPABASE_URL = 'https://gwmljctpddazmjmrrqjy.supabase.co';
+export const DEFAULT_SUPABASE_ANON_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3bWxqY3RwZGRhem1qbXJycWp5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5MDgwMzcsImV4cCI6MjEwNTQ4NDAzN30.8_HDN_B70TmcfMZtUcOkIDfoY-SCbvzHho7IC4JS73w';
+export const DEFAULT_SUPABASE_PROJECT_REF = 'gwmljctpddazmjmrrqjy';
+
+function isPlaceholder(val?: string): boolean {
+  if (!val) return true;
+  const s = val.trim().toLowerCase();
+  return (
+    !s ||
+    s.includes('your-project-ref') ||
+    s.includes('your-publishable-key') ||
+    s.includes('placeholder') ||
+    s.includes('example.com') ||
+    s === 'undefined' ||
+    s === 'null'
+  );
+}
+
+/** Sanitizes project URL to base domain without /rest/v1 or trailing slashes */
+export function sanitizeSupabaseUrl(raw?: string): string {
+  if (!raw || isPlaceholder(raw)) return '';
+  return raw.trim().replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '');
+}
+
+const rawEnvUrl = (import.meta.env.VITE_SUPABASE_URL ?? '').trim();
+const rawEnvKey = (
+  import.meta.env.VITE_SUPABASE_ANON_KEY ??
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
+  ''
+).trim();
+
+const url = sanitizeSupabaseUrl(rawEnvUrl) || DEFAULT_SUPABASE_URL;
+const anonKey = (!isPlaceholder(rawEnvKey) && rawEnvKey) || DEFAULT_SUPABASE_ANON_KEY;
 
 if (!url) {
   // eslint-disable-next-line no-console
