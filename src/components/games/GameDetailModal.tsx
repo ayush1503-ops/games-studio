@@ -119,20 +119,27 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                 {wished ? <Check size={14} /> : <Heart size={14} />}
                 {wished ? 'On your wishlist' : 'Wishlist it'}
               </button>
-              {game.storeLinks.map((store) => (
-                <a
-                  key={store.name}
-                  href={store.url}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    notify(`${store.name} page opens at launch — thanks for the enthusiasm!`);
-                  }}
-                  className="inline-flex items-center gap-1.5 rounded-xl border-2 border-ink bg-cream px-5 py-3.5 text-xs font-extrabold uppercase tracking-wider text-ink transition-all hover:-translate-y-0.5 hover:bg-grape hover:text-white"
-                >
-                  {store.name}
-                  <ArrowUpRight size={13} />
-                </a>
-              ))}
+              {game.storeLinks && game.storeLinks.length > 0 && game.storeLinks.map((store) => {
+                const isRealUrl = store.url && (store.url.startsWith('http://') || store.url.startsWith('https://'));
+                return (
+                  <a
+                    key={`${store.name}-${store.url}`}
+                    href={isRealUrl ? store.url : '#'}
+                    target={isRealUrl ? '_blank' : undefined}
+                    rel={isRealUrl ? 'noopener noreferrer' : undefined}
+                    onClick={(e) => {
+                      if (!isRealUrl) {
+                        e.preventDefault();
+                        notify(`${store.name} page opens at launch — thanks for the enthusiasm!`);
+                      }
+                    }}
+                    className="inline-flex items-center gap-1.5 rounded-xl border-2 border-ink bg-cream px-5 py-3.5 text-xs font-extrabold uppercase tracking-wider text-ink transition-all hover:-translate-y-0.5 hover:bg-grape hover:text-white"
+                  >
+                    <span>{store.badge || store.name}</span>
+                    <ArrowUpRight size={13} />
+                  </a>
+                );
+              })}
             </div>
           </div>
 

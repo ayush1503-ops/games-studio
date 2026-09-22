@@ -656,11 +656,46 @@ export const gamesApi = {
     const values = { ...gameInput(payload as any), created_by: user.id };
     const { data, error } = await client().from('games').insert(values).select().single();
     if (error) fail(error);
+
+    if (payload.storeLinks && Array.isArray(payload.storeLinks) && payload.storeLinks.length > 0) {
+      const linksToInsert = payload.storeLinks
+        .filter((l) => l.name?.trim() && l.url?.trim())
+        .map((l, index) => ({
+          game_id: data.id,
+          name: l.name.trim(),
+          url: l.url.trim(),
+          badge: l.badge?.trim() || null,
+          sort_order: index,
+        }));
+      if (linksToInsert.length > 0) {
+        const { error: linksErr } = await client().from('store_links').insert(linksToInsert);
+        if (linksErr) fail(linksErr);
+      }
+    }
+
     return loadGame(data.id);
   },
   async update(id: string, payload: Partial<AdminGame>) {
     const { data, error } = await client().from('games').update(gameInput(payload as any)).eq('id', id).select().single();
     if (error) fail(error);
+
+    if (payload.storeLinks !== undefined && Array.isArray(payload.storeLinks)) {
+      await client().from('store_links').delete().eq('game_id', id);
+      const linksToInsert = payload.storeLinks
+        .filter((l) => l.name?.trim() && l.url?.trim())
+        .map((l, index) => ({
+          game_id: id,
+          name: l.name.trim(),
+          url: l.url.trim(),
+          badge: l.badge?.trim() || null,
+          sort_order: index,
+        }));
+      if (linksToInsert.length > 0) {
+        const { error: linksErr } = await client().from('store_links').insert(linksToInsert);
+        if (linksErr) fail(linksErr);
+      }
+    }
+
     return loadGame(data.id);
   },
   async remove(id: string, _confirm: string) { const { error } = await client().from('games').delete().eq('id', id); if (error) fail(error); },

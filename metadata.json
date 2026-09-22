@@ -1,6 +1,6 @@
 {
   "name": "Brainchild Games",
-  "description": "Brainchild Games is a playful home for handcrafted worlds: discover sky-island adventures, golden-sea expeditions, surreal puzzles and co-op heists. Good games. Good times.",
+  "description": "Brainchild Games (Brain Child Studio) is an independent video game development studio creating handcrafted game worlds, sky-island adventures, golden-sea expeditions, surreal puzzles, and indie games.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

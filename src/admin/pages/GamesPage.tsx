@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import {
   Plus, Search, Filter, MoreVertical, Edit2, Trash2, Copy, Eye,
-  ExternalLink, Flag, Star, Loader2, X, Check, Upload, Sparkles
+  ExternalLink, Flag, Star, Loader2, X, Check, Upload, Sparkles,
+  ShoppingBag, Link2, Globe
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { gamesApi, type GameFilters } from '../utils/api';
@@ -32,6 +33,12 @@ const DEFAULT_PLATFORMS = [
   'PC (Steam)', 'Epic Games Store', 'PlayStation 5', 'Xbox Series X|S', 'Nintendo Switch', 'iOS / iPadOS', 'Android'
 ];
 
+export interface StoreLinkItem {
+  name: string;
+  url: string;
+  badge?: string;
+}
+
 interface GameFormData {
   title: string;
   subtitle: string;
@@ -41,6 +48,7 @@ interface GameFormData {
   price: string;
   releaseYear: string;
   platforms: string[];
+  storeLinks: StoreLinkItem[];
   description: string;
   longDescription: string;
   heroImage: string;
@@ -63,6 +71,9 @@ const emptyForm: GameFormData = {
   price: 'Wishlist free',
   releaseYear: '2026',
   platforms: ['PC (Steam)'],
+  storeLinks: [
+    { name: 'Steam', url: '', badge: 'Wishlist on Steam' }
+  ],
   description: '',
   longDescription: '',
   heroImage: '/images/art_aetherbound.jpg',
@@ -142,6 +153,9 @@ export const GamesPage: React.FC = () => {
       price: game.price || 'Wishlist free',
       releaseYear: game.releaseYear || '2026',
       platforms: game.platforms || ['PC (Steam)'],
+      storeLinks: game.storeLinks && game.storeLinks.length > 0
+        ? game.storeLinks.map(l => ({ name: l.name || '', url: l.url || '', badge: l.badge || '' }))
+        : [{ name: 'Steam', url: '', badge: 'Wishlist on Steam' }],
       description: game.description || '',
       longDescription: game.longDescription || '',
       heroImage: game.heroImage || '',
@@ -155,6 +169,28 @@ export const GamesPage: React.FC = () => {
       published: !!game.published
     });
     setIsModalOpen(true);
+  };
+
+  const handleAddStoreLink = (name = 'Steam', defaultBadge = 'Wishlist on Steam') => {
+    setFormData(prev => ({
+      ...prev,
+      storeLinks: [...prev.storeLinks, { name, url: '', badge: defaultBadge }]
+    }));
+  };
+
+  const handleUpdateStoreLink = (index: number, field: keyof StoreLinkItem, value: string) => {
+    setFormData(prev => {
+      const updated = [...prev.storeLinks];
+      updated[index] = { ...updated[index], [field]: value };
+      return { ...prev, storeLinks: updated };
+    });
+  };
+
+  const handleRemoveStoreLink = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      storeLinks: prev.storeLinks.filter((_, i) => i !== index)
+    }));
   };
 
   const handleSaveGame = async (e: React.FormEvent) => {
@@ -179,6 +215,13 @@ export const GamesPage: React.FC = () => {
         price: formData.price.trim() || 'Wishlist free',
         releaseYear: formData.releaseYear.trim() || 'TBA',
         platforms: formData.platforms.length > 0 ? formData.platforms : ['PC (Steam)'],
+        storeLinks: formData.storeLinks
+          .filter(l => l.name.trim() && l.url.trim())
+          .map(l => ({
+            name: l.name.trim(),
+            url: l.url.trim(),
+            badge: l.badge?.trim() || undefined
+          })),
         description: formData.description.trim(),
         longDescription: formData.longDescription.trim() || formData.description.trim(),
         heroImage: formData.heroImage.trim() || undefined,
@@ -630,6 +673,137 @@ export const GamesPage: React.FC = () => {
                       );
                     })}
                   </div>
+                </div>
+
+                {/* Marketplace & Store Links (Where Game is Released) */}
+                <div className="rounded-2xl border-2 border-ink/15 bg-paper/60 p-4 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <ShoppingBag size={16} className="text-grape" />
+                        <label className="text-xs font-extrabold uppercase tracking-wider text-ink">
+                          Marketplace & Store Links (Where Game is Released)
+                        </label>
+                      </div>
+                      <p className="text-[11px] font-medium text-inksoft mt-0.5">
+                        Add marketplace links where players can buy, wishlist, or download your game (just like the Trailer URL).
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleAddStoreLink('Steam', 'Wishlist on Steam')}
+                      className="inline-flex items-center gap-1.5 rounded-xl border-2 border-ink bg-sun px-3 py-1.5 text-xs font-extrabold text-ink shadow-sticker-sm hover:bg-cream transition-colors cursor-pointer self-start sm:self-auto"
+                    >
+                      <Plus size={14} /> Add Marketplace Link
+                    </button>
+                  </div>
+
+                  {/* Quick Add Presets */}
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                    <span className="text-[10px] font-extrabold uppercase text-inksoft mr-1">Quick Add:</span>
+                    {[
+                      { name: 'Steam', badge: 'Wishlist on Steam' },
+                      { name: 'Epic Games Store', badge: 'Get on Epic' },
+                      { name: 'PlayStation Store', badge: 'PlayStation Store' },
+                      { name: 'Xbox Store', badge: 'Xbox Store' },
+                      { name: 'Nintendo eShop', badge: 'Nintendo Switch' },
+                      { name: 'Apple App Store', badge: 'Download on App Store' },
+                      { name: 'Google Play Store', badge: 'Get on Google Play' },
+                      { name: 'itch.io', badge: 'Buy on itch.io' },
+                      { name: 'GOG.com', badge: 'Buy on GOG' },
+                    ].map(preset => (
+                      <button
+                        key={preset.name}
+                        type="button"
+                        onClick={() => handleAddStoreLink(preset.name, preset.badge)}
+                        className="rounded-lg border border-ink/20 bg-cream px-2.5 py-1 text-[11px] font-bold text-ink hover:bg-grape hover:text-white transition-colors cursor-pointer"
+                      >
+                        + {preset.name}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Links List */}
+                  {formData.storeLinks.length === 0 ? (
+                    <div className="rounded-xl border-2 border-dashed border-ink/20 bg-cream/50 p-4 text-center">
+                      <p className="text-xs font-medium text-inksoft">
+                        No marketplace links added yet. Click one of the quick presets above to add a marketplace link where this game is released.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5">
+                      {formData.storeLinks.map((link, idx) => (
+                        <div
+                          key={idx}
+                          className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 rounded-xl border-2 border-ink/10 bg-cream p-2.5 shadow-sm"
+                        >
+                          <div className="w-full sm:w-44 shrink-0">
+                            <label className="block text-[9px] font-extrabold uppercase text-inksoft mb-0.5">
+                              Marketplace Name
+                            </label>
+                            <input
+                              type="text"
+                              value={link.name}
+                              onChange={e => handleUpdateStoreLink(idx, 'name', e.target.value)}
+                              placeholder="e.g. Steam, Epic Games"
+                              list="marketplace-options"
+                              className="w-full rounded-lg border-2 border-ink/15 bg-paper px-2.5 py-1.5 text-xs font-bold text-ink focus:border-grape focus:outline-none"
+                            />
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <label className="block text-[9px] font-extrabold uppercase text-inksoft mb-0.5">
+                              Marketplace URL (Direct Link) *
+                            </label>
+                            <div className="relative">
+                              <input
+                                type="url"
+                                value={link.url}
+                                onChange={e => handleUpdateStoreLink(idx, 'url', e.target.value)}
+                                placeholder="https://store.steampowered.com/app/..."
+                                className="w-full rounded-lg border-2 border-ink/15 bg-paper px-2.5 py-1.5 text-xs font-medium text-ink focus:border-grape focus:outline-none"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="w-full sm:w-36 shrink-0">
+                            <label className="block text-[9px] font-extrabold uppercase text-inksoft mb-0.5">
+                              Button Label / Badge
+                            </label>
+                            <input
+                              type="text"
+                              value={link.badge || ''}
+                              onChange={e => handleUpdateStoreLink(idx, 'badge', e.target.value)}
+                              placeholder="e.g. Wishlist"
+                              className="w-full rounded-lg border-2 border-ink/15 bg-paper px-2.5 py-1.5 text-xs font-medium text-ink focus:border-grape focus:outline-none"
+                            />
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveStoreLink(idx)}
+                            className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border-2 border-transparent text-coral hover:border-coral/20 hover:bg-coral/10 transition-colors cursor-pointer self-end sm:self-center mt-1 sm:mt-3"
+                            title="Remove marketplace link"
+                            aria-label="Remove link"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <datalist id="marketplace-options">
+                    <option value="Steam" />
+                    <option value="Epic Games Store" />
+                    <option value="PlayStation Store" />
+                    <option value="Xbox Store" />
+                    <option value="Nintendo eShop" />
+                    <option value="Apple App Store" />
+                    <option value="Google Play Store" />
+                    <option value="GOG.com" />
+                    <option value="itch.io" />
+                  </datalist>
                 </div>
 
                 {/* Descriptions */}
