@@ -20,7 +20,7 @@ export const ResetPasswordPage: React.FC = () => {
   // URL parameters that could have been delivered
   const urlToken = searchParams.get('token') || searchParams.get('token_hash') || '';
   const urlCode = searchParams.get('code') || '';
-  const initialEmail = searchParams.get('email') || session?.user?.email || 'vestarixbrand@gmail.com';
+  const initialEmail = searchParams.get('email') || session?.user?.email || '';
 
   const callbackError = useMemo(() => describeAuthCallbackError(), []);
 
