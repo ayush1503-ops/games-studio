@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { describeAuthCallbackError } from '../../lib/supabase';
 import { SupabaseSetupNotice } from '../components/SupabaseSetupNotice';
 import { notify } from '../utils/toast';
+import { assetUrl } from '../../utils/asset';
 
 const MIN_PASSWORD_LENGTH = 12;
 
@@ -155,7 +156,7 @@ export const ResetPasswordPage: React.FC = () => {
       <div className="relative w-full max-w-lg">
         <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-10">
           <img
-            src="/images/mascot_pix.png"
+            src={assetUrl("/images/mascot_pix.png")}
             alt="Pix"
             className="h-20 w-20 object-cover rounded-2xl border-2 border-ink shadow-lift"
           />

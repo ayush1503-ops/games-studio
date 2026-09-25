@@ -5,6 +5,7 @@ import { Job } from '../../types';
 import { useStudio } from '../../context/StudioContext';
 import { Reveal } from '../ui/Reveal';
 import { Squiggle, DiceBit, CoinBit } from '../ui/Bits';
+import { assetUrl } from '../../utils/asset';
 
 /** Fallbacks — the “careers.intro” block in the CMS overrides these. */
 const DEFAULT_BENEFITS = [
@@ -57,7 +58,7 @@ export const CareersPage: React.FC = () => {
           <Reveal delay={0.1} className="lg:col-span-5">
             <div className="relative mx-auto max-w-xs">
               <div className="rotate-3 rounded-[30px] border-2 border-ink bg-cream p-3 shadow-sticker transition-transform duration-300 hover:rotate-0">
-                <img src="/images/mascot_pix.png" alt="Pix holding a hiring sign" className="w-full rounded-[20px]" />
+                <img src={assetUrl("/images/mascot_pix.png")} alt="Pix holding a hiring sign" className="w-full rounded-[20px]" />
                 <div className="absolute -top-5 left-4 -rotate-3 rounded-2xl border-2 border-ink bg-coral px-4 py-2 shadow-sticker-sm">
                   <span className="text-xs font-extrabold uppercase tracking-wide text-white">We’re hiring!</span>
                 </div>

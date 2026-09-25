@@ -3,6 +3,7 @@ import { ArrowRight, Users, Gamepad2, HeartHandshake } from 'lucide-react';
 import { useStudio } from '../../context/StudioContext';
 import { Reveal } from '../ui/Reveal';
 import { Squiggle, ControllerBit, StarSticker } from '../ui/Bits';
+import { assetUrl } from '../../utils/asset';
 
 /** Fallbacks — the “home.values” block in the CMS overrides these. */
 const VALUE_ICONS = { gamepad: Gamepad2, users: Users, heart: HeartHandshake } as const;
@@ -80,7 +81,7 @@ export const AboutBand: React.FC = () => {
             <div className="relative mx-auto max-w-lg">
               <div className="rotate-2 rounded-[30px] border-2 border-ink bg-cream p-3 shadow-sticker transition-transform duration-300 hover:rotate-0">
                 <img
-                  src="/images/art_studio.jpg"
+                  src={assetUrl("/images/art_studio.jpg")}
                   alt="The Brainchild studio at work"
                   className="aspect-[4/3] w-full rounded-[20px] border-2 border-ink/10 object-cover"
                 />
@@ -94,7 +95,7 @@ export const AboutBand: React.FC = () => {
 
               {/* mascot peeking */}
               <div className="absolute -bottom-10 -left-6 w-32 rotate-[-6deg] rounded-3xl border-2 border-ink bg-cream p-2 shadow-sticker-sm sm:w-36">
-                <img src="/images/mascot_pix.png" alt="Pix, the studio mascot" className="w-full rounded-2xl" />
+                <img src={assetUrl("/images/mascot_pix.png")} alt="Pix, the studio mascot" className="w-full rounded-2xl" />
               </div>
 
               {/* stat stickers */}

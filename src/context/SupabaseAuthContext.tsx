@@ -141,8 +141,9 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   const resetPasswordForEmail = useCallback<SupabaseAuthContextValue['resetPasswordForEmail']>(
     async (email, redirectTo) => {
       if (!supabase) return { error: NotConfiguredError as AuthError };
+      const basePath = (import.meta.env.BASE_URL ?? '/').replace(/\/?$/, '/');
       return supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectTo ?? `${window.location.origin}/admin/reset-password`,
+        redirectTo: redirectTo ?? `${window.location.origin}${basePath}admin/reset-password`,
       });
     },
     []

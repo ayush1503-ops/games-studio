@@ -5,6 +5,7 @@ import { motion } from 'motion/react';
 import { ApiError, authApi } from '../utils/api';
 import { isSupabaseConfigured } from '../../lib/supabase';
 import { SupabaseSetupNotice } from '../components/SupabaseSetupNotice';
+import { assetUrl } from '../../utils/asset';
 
 /**
  * Password recovery is handled directly by Supabase Auth. The editor never
@@ -90,7 +91,7 @@ export const ForgotPasswordPage: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-paper px-4">
       <div className="relative w-full max-w-md">
         <div className="absolute -top-8 left-1/2 -translate-x-1/2">
-          <img src="/images/mascot_pix.png" alt="Pix" className="h-24 w-24 object-cover rounded-2xl border-2 border-ink shadow-lift" />
+          <img src={assetUrl("/images/mascot_pix.png")} alt="Pix" className="h-24 w-24 object-cover rounded-2xl border-2 border-ink shadow-lift" />
         </div>
 
         <motion.div

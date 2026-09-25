@@ -16,6 +16,7 @@ import { motion } from 'motion/react';
 import { dashboardApi } from '../utils/api';
 import type { ActivityEntry, DashboardStats as DashboardStatsResponse } from '../types';
 import { notify } from '../utils/toast';
+import { assetUrl } from '../../utils/asset';
 
 const STAT_CARDS = [
   { key: 'totalGames', label: 'Total Games', icon: Gamepad2, color: 'bg-grape', trend: 'in the catalogue' },
@@ -117,7 +118,7 @@ export const DashboardPage: React.FC = () => {
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-4">
           <div className="grid h-12 w-12 place-items-center rounded-2xl border-2 border-ink bg-cream animate-spin">
-            <img src="/images/mascot_pix.png" alt="" className="h-8 w-8 object-cover" />
+            <img src={assetUrl("/images/mascot_pix.png")} alt="" className="h-8 w-8 object-cover" />
           </div>
           <p className="text-sm font-semibold text-inksoft">Loading dashboard...</p>
         </div>

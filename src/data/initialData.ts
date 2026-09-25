@@ -1,4 +1,5 @@
 import { Game, Article, Job, StudioTimelineItem, TeamMember } from '../types';
+import { assetUrl } from '../utils/asset';
 
 export const INITIAL_GAMES: Game[] = [
   {
@@ -17,12 +18,12 @@ export const INITIAL_GAMES: Game[] = [
       'Swing, glide and grapple across floating sky-islands where waterfalls fall forever into a sea of clouds.',
     longDescription:
       'In Aetherbound you play a young cartographer charting a sky full of drifting islands. Ride warm wind currents, tether-grapple between vine-wrapped ruins, and wake the ancient wind shrines that keep the whole archipelago afloat. Every island is a little pocket world: a garden, a bell tower, a sleepy village, a storm you can surf.',
-    heroImage: '/images/art_aetherbound.jpg',
-    secondaryImage: '/images/art_week_wide.jpg',
+    heroImage: assetUrl('/images/art_aetherbound.jpg'),
+    secondaryImage: assetUrl('/images/art_week_wide.jpg'),
     screenshots: [
-      '/images/art_aetherbound.jpg',
-      '/images/art_week_wide.jpg',
-      '/images/art_chrono.jpg'
+      assetUrl('/images/art_aetherbound.jpg'),
+      assetUrl('/images/art_week_wide.jpg'),
+      assetUrl('/images/art_chrono.jpg')
     ],
     tags: ['Sky Islands', 'Grapple', 'Exploration', 'Feel-Good', 'Single Player'],
     features: [
@@ -74,12 +75,12 @@ export const INITIAL_GAMES: Game[] = [
       'Pilote a cozy little submarine through an ocean of liquid light, harvesting glowing anomalies before the tide turns.',
     longDescription:
       'Solaris Diver puts you at the helm of a round, creaky, loveable diving bell. Balance heat, ballast and crew morale as you descend through golden currents, tether shining cores back to the surface, and trade them for a bigger bell, a faster propeller, and a very unnecessary brass horn.',
-    heroImage: '/images/art_solaris.jpg',
-    secondaryImage: '/images/art_aetherbound.jpg',
+    heroImage: assetUrl('/images/art_solaris.jpg'),
+    secondaryImage: assetUrl('/images/art_aetherbound.jpg'),
     screenshots: [
-      '/images/art_solaris.jpg',
-      '/images/art_week_wide.jpg',
-      '/images/art_void.jpg'
+      assetUrl('/images/art_solaris.jpg'),
+      assetUrl('/images/art_week_wide.jpg'),
+      assetUrl('/images/art_void.jpg')
     ],
     tags: ['Survival', 'Deep Dive', 'Procedural', 'Resource Management'],
     features: [
@@ -124,9 +125,9 @@ export const INITIAL_GAMES: Game[] = [
       'Rewind, shatter and rebuild impossible marble ruins that exist in three time periods at once.',
     longDescription:
       'A contemplative puzzle odyssey set in a desert that refuses to settle on a century. Every structure exists simultaneously as fresh-built, golden-age and crumbled ruin. Slide between the three eras to reconnect aqueducts, freeze sandfalls into climbable stairs, and wake the stone automata who still remember the architects.',
-    heroImage: '/images/art_chrono.jpg',
-    secondaryImage: '/images/art_aetherbound.jpg',
-    screenshots: ['/images/art_chrono.jpg', '/images/art_week_wide.jpg'],
+    heroImage: assetUrl('/images/art_chrono.jpg'),
+    secondaryImage: assetUrl('/images/art_aetherbound.jpg'),
+    screenshots: [assetUrl('/images/art_chrono.jpg'), assetUrl('/images/art_week_wide.jpg')],
     tags: ['Puzzle', 'Narrative', 'Architecture', 'Stylized', 'Cozy Brain-Bender'],
     features: [
       'Seamless triple-era sliding with zero loading delay',
@@ -170,9 +171,9 @@ export const INITIAL_GAMES: Game[] = [
       'Plan the perfect rooftop heist with three friends, then watch it gloriously survive contact with reality.',
     longDescription:
       'Void Protocol blends a chill planning phase with a fizzy real-time caper. Mark the guard routes, rig the zip-lines, assign who carries the snacks — then execute together as four gloriously mismatched thieves across a city of round towers, string lights and very confused pigeons.',
-    heroImage: '/images/art_void.jpg',
-    secondaryImage: '/images/art_solaris.jpg',
-    screenshots: ['/images/art_void.jpg', '/images/art_week_wide.jpg'],
+    heroImage: assetUrl('/images/art_void.jpg'),
+    secondaryImage: assetUrl('/images/art_solaris.jpg'),
+    screenshots: [assetUrl('/images/art_void.jpg'), assetUrl('/images/art_week_wide.jpg')],
     tags: ['Tactical', 'Co-op', 'Heist', 'Stealth', 'Comedy'],
     features: [
       'A sync-planner: draw the plan in seconds, execute it in fluid real-time',
@@ -214,7 +215,7 @@ Every particle in the cloud sea carries a dynamic velocity vector. When you fire
 ### Sound Where There Is Only Wind
 
 Your tether hums, the canvas of your glide-suit flaps, and distant shrines chime when a weather front passes. We recorded over 400 real mechanical impacts using contact mics on playground swings, boat rigging and old church bells around Montreal.`,
-    coverImage: '/images/art_aetherbound.jpg',
+    coverImage: assetUrl('/images/art_aetherbound.jpg'),
     author: {
       name: 'Elena Rostova',
       role: 'Lead Systems & Physics Programmer'
@@ -237,7 +238,7 @@ Your tether hums, the canvas of your glide-suit flaps, and distant shrines chime
 Pix was born in an old sketchbook during a late train ride. The star-tipped antenna represents the small spark of every new prototype. The coral joints stand for human warmth, and the purple controller is a playful nod to the four-button pads we grew up on.
 
 Whenever a new member joins the studio, they receive an enamel Pix pin and a tiny desk statue. Pix reminds us why we make games: that childhood feeling of pressing start and believing, completely, that something wonderful is on the other side of the screen.`,
-    coverImage: '/images/mascot_pix.png',
+    coverImage: assetUrl('/images/mascot_pix.png'),
     author: {
       name: 'Julian Vance',
       role: 'Creative Director & Co-Founder'
@@ -258,7 +259,7 @@ Whenever a new member joins the studio, they receive an enamel Pix pin and a tin
     content: `Update 0.8 is our largest Early Access content drop to date for Solaris Diver. Based on feedback from over 45,000 divers, we have overhauled the core heat dispersion mechanics and added two completely new deep-glow biomes: the Prominence Hollows and the Lantern Trench.
 
 Check out the full patch notes on our Steam community hub, or hop into our studio Discord to share your bell loadouts!`,
-    coverImage: '/images/art_solaris.jpg',
+    coverImage: assetUrl('/images/art_solaris.jpg'),
     author: {
       name: 'Kai Takahashi',
       role: 'Lead Producer'
@@ -279,7 +280,7 @@ Check out the full patch notes on our Steam community hub, or hop into our studi
     content: `For Chrono Monolith, standard orchestral strings felt too tidy. We wanted a score that sounds like old stone stretching in the sun.
 
 We brought vintage tape delays, custom resonant filters and microtonal cello bowing into an abandoned chapel in Normandy to capture pure natural reverberation. The resulting textures pulse gently as you slide between the three eras of every structure.`,
-    coverImage: '/images/art_chrono.jpg',
+    coverImage: assetUrl('/images/art_chrono.jpg'),
     author: {
       name: 'Sariel Moreau',
       role: 'Audio Director'
@@ -300,7 +301,7 @@ We brought vintage tape delays, custom resonant filters and microtonal cello bow
     content: `The first closed alpha of Void Protocol opens next month for squads of four. Alpha crews will get access to two full heists, the sync-planner, and a feedback channel straight to the design team.
 
 We are specifically looking for squads who talk too much on voice chat. That is the target demographic, apparently.`,
-    coverImage: '/images/art_void.jpg',
+    coverImage: assetUrl('/images/art_void.jpg'),
     author: {
       name: 'Kai Takahashi',
       role: 'Lead Producer'
@@ -321,7 +322,7 @@ We are specifically looking for squads who talk too much on voice chat. That is 
     content: `Every spring we shut down production for one week and jam. The only rule: the prototype must make someone in the room laugh or gasp within fifteen seconds.
 
 This year's highlights include "Pigeon Protocol" (now merged into Void Protocol's lookout role), "Bellhop" (a shrine-ringing rhythm toy), and a one-button glider that quietly became the seed of our next unannounced world.`,
-    coverImage: '/images/art_studio.jpg',
+    coverImage: assetUrl('/images/art_studio.jpg'),
     author: {
       name: 'Maya Lin-Torvalds',
       role: 'Technical Director & Co-Founder'

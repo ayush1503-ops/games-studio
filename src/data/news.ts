@@ -1,3 +1,4 @@
+import { assetUrl } from '../utils/asset';
 export type Article = {
   id: string;
   title: string;
@@ -16,7 +17,7 @@ export const articles: Article[] = [
     content: 'We are incredibly excited to announce that Project Nebula has officially entered closed alpha. After 3 years of intense development, our physics engine is finally stable enough to handle the chaotic reality of zero-g combat...',
     date: '2026-10-15',
     author: 'Sarah Jenkins, Game Director',
-    coverImage: '/images/news/nebula-alpha.jpg',
+    coverImage: assetUrl('/images/news/nebula-alpha.jpg'),
   },
   {
     id: 'studio-expansion',
@@ -25,7 +26,7 @@ export const articles: Article[] = [
     content: 'It has been a wild ride since we launched Neon Drifter. Thanks to our amazing community, we are expanding our studio space and hiring for multiple key roles...',
     date: '2026-09-01',
     author: 'Mark Sterling, Studio Head',
-    coverImage: '/images/news/studio-expansion.jpg',
+    coverImage: assetUrl('/images/news/studio-expansion.jpg'),
   }
 ];
 

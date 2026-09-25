@@ -364,16 +364,20 @@ export const authApi = {
       if (err instanceof ApiError) throw err;
     }
 
-    // 2. Fallback to local server proxy if client was blocked or failed
-    if (!authUser) {
+    // 2. Dev-only fallback: the Vite dev server exposes `/api/auth/*` shims
+    // (see `vite.config.ts`) that bypass ad-blockers. Production builds on
+    // static hosts (Vercel, cPanel/Apache, …) have no such endpoint — the
+    // request would return `index.html`/404 — so skip it outside dev.
+    if (!authUser && import.meta.env.DEV) {
       try {
         const resp = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: trimmedEmail, password }),
         });
-        const data = await resp.json().catch(() => ({}));
-        if (resp.ok && data.access_token) {
+        const isJson = (resp.headers.get('content-type') ?? '').includes('application/json');
+        const data = isJson ? await resp.json().catch(() => ({})) : {};
+        if (resp.ok && isJson && data.access_token) {
           await client().auth.setSession({
             access_token: data.access_token,
             refresh_token: data.refresh_token,
@@ -381,7 +385,7 @@ export const authApi = {
           authUser = data.user;
         } else if (resp.status === 400 || resp.status === 401) {
           throw new ApiError('Email or password is incorrect.', 401, 'invalid_credentials');
-        } else if (data.error_description || data.msg || data.message) {
+        } else if (isJson && (data.error_description || data.msg || data.message)) {
           throw new ApiError(data.error_description || data.msg || data.message, resp.status, 'login_failed');
         }
       } catch (proxyErr) {
@@ -411,30 +415,39 @@ export const authApi = {
   },
   async forgotPassword(email: string) {
     const trimmed = email.trim().toLowerCase();
-    const redirectTo = `${window.location.origin}/admin/reset-password`;
+    // Respect the deploy base path so subdirectory installs (cPanel
+    // `public_html/studio/`, …) recover to the right URL.
+    const basePath = (import.meta.env.BASE_URL ?? '/').replace(/\/?$/, '/');
+    const redirectTo = `${window.location.origin}${basePath}admin/reset-password`;
 
-    // 1. Try local server endpoint first (bypasses browser ad-blockers & iframe CORS)
-    try {
-      const resp = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: trimmed, redirectTo }),
-      });
-      if (resp.ok) {
-        return {
-          message: 'If that email belongs to a studio account, a reset link is on its way.',
-          emailDeliveryEnabled: true,
-          emailDeliveryChannel: 'supabase' as const,
-          devResetUrl: undefined as string | undefined,
-          devDeliveryError: undefined as string | undefined,
-          emailDeliveryReason: undefined as string | undefined,
-        };
+    // 1. Dev-only: the Vite dev server exposes `/api/auth/*` shims that bypass
+    // ad-blockers & iframe CORS. Static production hosts have no such
+    // endpoint (cPanel answers `/api/*` with its 404 page), so only attempt
+    // this in dev — and only trust JSON answers, never `index.html`.
+    if (import.meta.env.DEV) {
+      try {
+        const resp = await fetch('/api/auth/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: trimmed, redirectTo }),
+        });
+        const isJson = (resp.headers.get('content-type') ?? '').includes('application/json');
+        if (resp.ok && isJson) {
+          return {
+            message: 'If that email belongs to a studio account, a reset link is on its way.',
+            emailDeliveryEnabled: true,
+            emailDeliveryChannel: 'supabase' as const,
+            devResetUrl: undefined as string | undefined,
+            devDeliveryError: undefined as string | undefined,
+            emailDeliveryReason: undefined as string | undefined,
+          };
+        }
+        if (resp.status === 429) {
+          throw new ApiError('Too many reset attempts. Please wait a minute and try again.', 429, 'rate_limit');
+        }
+      } catch (localErr) {
+        if (localErr instanceof ApiError) throw localErr;
       }
-      if (resp.status === 429) {
-        throw new ApiError('Too many reset attempts. Please wait a minute and try again.', 429, 'rate_limit');
-      }
-    } catch (localErr) {
-      if (localErr instanceof ApiError) throw localErr;
     }
 
     // 2. Direct Supabase SDK client call

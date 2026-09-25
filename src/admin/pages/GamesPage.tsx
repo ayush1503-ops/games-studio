@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { gamesApi, type GameFilters } from '../utils/api';
 import type { AdminGame } from '../types';
 import { notify } from '../utils/toast';
+import { assetUrl } from '../../utils/asset';
 
 const STATUS_OPTIONS = [
   { value: '', label: 'All Status' },
@@ -76,9 +77,9 @@ const emptyForm: GameFormData = {
   ],
   description: '',
   longDescription: '',
-  heroImage: '/images/art_aetherbound.jpg',
-  secondaryImage: '/images/art_week_wide.jpg',
-  screenshots: '/images/art_aetherbound.jpg\n/images/art_week_wide.jpg',
+  heroImage: assetUrl('/images/art_aetherbound.jpg'),
+  secondaryImage: assetUrl('/images/art_week_wide.jpg'),
+  screenshots: `${assetUrl('/images/art_aetherbound.jpg')}\n${assetUrl('/images/art_week_wide.jpg')}`,
   trailerUrl: '',
   tags: 'Indie, Single Player, Adventure',
   features: 'Exploration with fluid movement\nHandcrafted art and atmosphere\nRich story and world lore',
