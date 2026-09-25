@@ -13,6 +13,7 @@ import {
   X,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { assetUrl } from '../../utils/asset';
 
 const NAV_ITEMS = [
   { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -69,7 +70,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               aria-label="Brainchild Admin"
             >
               <div className="grid h-9 w-9 place-items-center overflow-hidden rounded-xl border-2 border-ink bg-cream shadow-sticker-sm shrink-0">
-                <img src="/images/mascot_pix.png" alt="Pix Mascot" className="h-full w-full object-cover" />
+                <img src={assetUrl("/images/mascot_pix.png")} alt="Pix Mascot" className="h-full w-full object-cover" />
               </div>
               {(!isCollapsed || isMobileOpen) && (
                 <div className="flex flex-col">
@@ -142,7 +143,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <div className="px-2 py-1.5">
                   <div className="flex items-center gap-2 text-sm">
                     <div className="grid h-8 w-8 place-items-center overflow-hidden rounded-xl border-2 border-ink bg-cream shrink-0">
-                      <img src="/images/mascot_pix.png" alt="" className="h-full w-full object-cover" />
+                      <img src={assetUrl("/images/mascot_pix.png")} alt="" className="h-full w-full object-cover" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold text-ink text-xs truncate">

@@ -3,6 +3,7 @@ import { ArrowUp, MessageCircle, Youtube, Twitch, Twitter, Terminal } from 'luci
 import { useStudio } from '../../context/StudioContext';
 import { PageRoute } from '../../types';
 import { Squiggle, ControllerBit, DiceBit, CoinBit } from '../ui/Bits';
+import { assetUrl } from '../../utils/asset';
 
 /** Fallbacks — the “footer.studio” block in the CMS overrides these. */
 const DEFAULT_FOOTER = {
@@ -72,7 +73,7 @@ export const SignatureFooter: React.FC = () => {
           <div className="col-span-2 space-y-4 md:col-span-5">
             <div className="flex items-center gap-3">
               <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-xl border-2 border-paper bg-cream">
-                <img src="/images/mascot_pix.png" alt="" className="h-full w-full object-cover" />
+                <img src={assetUrl("/images/mascot_pix.png")} alt="" className="h-full w-full object-cover" />
               </span>
               <div className="leading-none">
                 <div className="font-display text-base font-extrabold uppercase tracking-tight">Brainchild Games</div>

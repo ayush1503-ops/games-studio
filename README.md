@@ -83,6 +83,83 @@ once Vercel gives you the production domain:
 - `https://YOUR-VERCEL-DOMAIN.vercel.app/**`
 - `http://localhost:3000/**`
 
+## Deploy to cPanel shared hosting (Apache)
+
+This is a 100% static site (Vite build output + Supabase as the backend), so
+it runs on any plain cPanel shared host — no Node.js app, no VPS, no
+server-side process needed. If a previous upload "didn't work", it was almost
+certainly one of: the wrong folder was uploaded, the hidden `.htaccess` was
+left behind, or a deep link was opened without the SPA fallback. The steps
+below cover all three.
+
+### Release steps (File Manager — recommended)
+
+1. **Configure production values.** cPanel has no env-var dashboard, so
+   settings are baked into the bundle at build time:
+
+   ```bash
+   cp .env.production.example .env.production
+   # edit .env.production: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
+   # (leave VITE_BASE_PATH commented for a domain-root install)
+   ```
+
+2. **Build locally** (Node 18+):
+
+   ```bash
+   npm ci
+   npm run build
+   ```
+
+   This produces `dist/` containing `index.html`, `assets/`, `images/` and a
+   hidden `.htaccess` (copied from `public/.htaccess`) that provides the
+   client-side-routing fallback, caching and security headers.
+
+3. **Upload the *contents* of `dist/`** — not the project source, not the
+   `dist` folder itself — to the domain's document root (usually
+   `public_html/`). In File Manager click **Settings → Show Hidden Files**,
+   otherwise `.htaccess` is silently skipped and every page except `/`
+   returns a 404. Easiest reliable method: zip the *contents* of `dist/`
+   locally (`cd dist && zip -r ../site.zip .`), upload `site.zip`, Extract.
+
+4. **Point Supabase at the live domain.** In Supabase → Authentication → URL
+   Configuration add:
+
+   - Site URL: `https://YOUR-DOMAIN.com`
+   - Redirect URLs: `https://YOUR-DOMAIN.com/**` (keep the localhost entries
+     for local dev)
+
+5. **Verify:** open `https://YOUR-DOMAIN.com`, then
+   `https://YOUR-DOMAIN.com/admin/login` directly (this is the deep link that
+   404s when `.htaccess` is missing), and sign in.
+
+### Subdirectory install (`example.com/studio/`)
+
+1. Uncomment and set `VITE_BASE_PATH=/studio/` in `.env.production`
+   (leading **and** trailing slashes required), rebuild, and upload the
+   `dist/` contents to `public_html/studio/`.
+2. Add `https://example.com/studio/**` to the Supabase redirect URLs.
+3. The same `.htaccess` works unchanged — its fallback rule is relative, so
+   it adapts to whatever folder it sits in.
+
+### Push-to-deploy via Git Version Control (optional)
+
+Prefer `git push` over File Manager uploads? Rename
+[`.cpanel.yml.example`](.cpanel.yml.example) to `.cpanel.yml`, follow the
+checklist inside it, and use cPanel → Git Version Control → Deploy. This
+requires Node.js 18+ on the hosting account; otherwise keep the File Manager
+flow above.
+
+### Troubleshooting
+
+| Symptom | Cause → Fix |
+|---|---|
+| Blank page / file listing / PHP errors | You uploaded the project source instead of the build. Only the *contents* of `dist/` belong on the server. No `package.json`, no `node_modules`, no "Setup Node.js App" needed. |
+| `/` works but `/admin`, `/admin/login`, refresh → 404 | `.htaccess` is missing on the server. Re-upload with "Show Hidden Files" enabled (or `unzip` the bundle — zips keep dotfiles). |
+| Images/JS 404, but only in a subfolder | Built with the default root base path. Set `VITE_BASE_PATH=/sub/` in `.env.production`, rebuild, re-upload. |
+| Admin login / password reset fails on live | Supabase redirect URLs don't include the live domain (step 4 above). Also confirm `.env.production` held the *production* Supabase project values when you built. |
+| Old version still shows after re-upload | `index.html` is sent `no-cache`, but proxies/CDNs (Cloudflare "Cache Everything") can pin it. Purge the cache and hard-refresh. |
+| `500 Internal Server Error` on every page | The host's Apache lacks a module the `.htaccess` references. Every block here is wrapped in `<IfModule>` guards, so first check the cPanel Error Log — a stray `.htaccess` from a previous app (WordPress rules, `php_flag`s) in a parent folder is the usual culprit. |
+
 ## Useful commands
 
 ```bash

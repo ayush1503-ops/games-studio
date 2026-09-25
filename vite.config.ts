@@ -160,8 +160,24 @@ function supabaseAuthPlugin(): Plugin {
   };
 }
 
+/**
+ * Where the built site will be served from.
+ *
+ * - Domain root (`public_html/` on cPanel, Vercel, …) → `/` (default).
+ * - Subdirectory (e.g. `public_html/studio/` reached as
+ *   `https://example.com/studio/`) → rebuild with
+ *   `VITE_BASE_PATH=/studio/` in `.env.production` (leading AND trailing
+ *   slash matter). Bundled assets, `import.meta.env.BASE_URL` (see
+ *   `src/utils/asset.ts`) and the router basename all follow this value.
+ */
+function getBasePath(): string {
+  const raw = (process.env.VITE_BASE_PATH ?? '/').trim() || '/';
+  const withLeading = raw.startsWith('/') ? raw : `/${raw}`;
+  return withLeading.endsWith('/') ? withLeading : `${withLeading}/`;
+}
+
 export default defineConfig({
-  base: '/',
+  base: getBasePath(),
   plugins: [react(), tailwindcss(), supabaseAuthPlugin()],
   server: {
     host: '0.0.0.0',

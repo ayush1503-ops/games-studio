@@ -1,0 +1,31 @@
+# =====================================================================
+# OPTIONAL: cPanel "Git Version Control" auto-deployment.
+#
+# The recommended cPanel release flow is building locally and uploading the
+# `dist/` folder via File Manager (see README "Deploy to cPanel"). Use this
+# file only if you prefer push-to-deploy from cPanel's Git Version Control:
+#
+#   1. cPanel → Git Version Control → clone this repository.
+#   2. Copy this file to `.cpanel.yml` in the repository root and commit it.
+#   3. Replace REPLACE_WITH_CPANEL_USER below with your cPanel username
+#      (find it top-right in cPanel) and adjust the target directory if the
+#      site is an addon domain or a subdirectory install.
+#   4. In Git Version Control → Manage → "Update from Remote" + "Deploy".
+#   5. Create `.env.production` on the server (same folder as package.json)
+#      with your real Supabase values — see `.env.production.example`.
+#      It is git-ignored, so it survives redeploys but is never committed.
+#
+# REQUIREMENT: the cPanel account must have Node.js 18+ on PATH for
+# deployment tasks ("Setup Node.js App" or the CloudLinux Node.js Selector).
+# If `npm` is unavailable there, stick to the File Manager upload flow.
+# =====================================================================
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/REPLACE_WITH_CPANEL_USER/public_html/
+    - /bin/rm -rf ./dist
+    - npm ci --no-audit --no-fund
+    - npm run build
+    # NOTE: `dist/.` (not `dist/*`) so the hidden `.htaccess` — which the
+    # SPA fallback depends on — is copied too.
+    - /bin/cp -r dist/. $DEPLOYPATH

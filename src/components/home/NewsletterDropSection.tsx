@@ -4,6 +4,7 @@ import confetti from 'canvas-confetti';
 import { useStudio } from '../../context/StudioContext';
 import { Reveal } from '../ui/Reveal';
 import { CartridgeBit, StarSticker } from '../ui/Bits';
+import { assetUrl } from '../../utils/asset';
 
 const INTERESTS = ['Beta access', 'New game drops', 'Devlogs & tech', 'Merch & vinyl'];
 
@@ -127,7 +128,7 @@ export const NewsletterDropSection: React.FC = () => {
               {/* Mascot side */}
               <div className="flex flex-col items-center justify-center lg:col-span-5">
                 <div className="relative w-56 rotate-3 rounded-[26px] border-2 border-ink bg-cream p-3 shadow-sticker transition-transform duration-300 hover:rotate-0 sm:w-64">
-                  <img src="/images/mascot_pix.png" alt="Pix holding the newsletter" className="w-full rounded-[18px]" />
+                  <img src={assetUrl("/images/mascot_pix.png")} alt="Pix holding the newsletter" className="w-full rounded-[18px]" />
                   <span className="absolute -left-4 -top-4 -rotate-6 rounded-full border-2 border-ink bg-grape px-3.5 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-sticker-sm animate-bob">
                     1 email / month
                   </span>

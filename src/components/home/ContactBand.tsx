@@ -4,6 +4,7 @@ import { useStudio } from '../../context/StudioContext';
 import { ContactForm } from '../contact/ContactForm';
 import { Reveal } from '../ui/Reveal';
 import { Squiggle, ControllerBit, CoinBit } from '../ui/Bits';
+import { assetUrl } from '../../utils/asset';
 
 const DEFAULT_DETAILS = {
   email: 'hello@brainchild.games',
@@ -49,7 +50,7 @@ export const ContactBand: React.FC = () => {
             <div className="relative mx-auto max-w-sm lg:mt-10">
               <div className="rotate-2 rounded-[30px] border-2 border-ink bg-grape p-6 shadow-sticker transition-transform duration-300 hover:rotate-0">
                 <div className="relative rounded-[22px] border-2 border-ink bg-cream p-4">
-                  <img src="/images/mascot_pix.png" alt="Pix waving hello" className="w-full rounded-[16px]" />
+                  <img src={assetUrl("/images/mascot_pix.png")} alt="Pix waving hello" className="w-full rounded-[16px]" />
                   <div className="absolute -top-6 left-6 max-w-[210px] rotate-[-3deg] rounded-2xl border-2 border-ink bg-sun px-4 py-2.5 shadow-sticker-sm">
                     <p className="text-xs font-extrabold uppercase tracking-wide text-ink">
                       Got a quest for us? Drop it in the form!

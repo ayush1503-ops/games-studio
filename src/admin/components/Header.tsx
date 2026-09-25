@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { assetUrl } from '../../utils/asset';
 
 export interface AdminNotification {
   id: string;
@@ -313,7 +314,7 @@ export const Header: React.FC<{
               aria-expanded={isUserMenuOpen}
             >
               <div className="grid h-8 w-8 place-items-center overflow-hidden rounded-full border-2 border-ink bg-cream shrink-0">
-                <img src="/images/mascot_pix.png" alt="Pix" className="h-full w-full object-cover" />
+                <img src={assetUrl("/images/mascot_pix.png")} alt="Pix" className="h-full w-full object-cover" />
               </div>
               <div className="hidden sm:block text-left">
                 <p className="text-xs font-extrabold leading-none">{user?.name || 'Studio Admin'}</p>
@@ -357,7 +358,7 @@ export const Header: React.FC<{
                   </Link>
 
                   <a
-                    href="/"
+                    href={assetUrl("/")}
                     target="_blank"
                     rel="noreferrer"
                     onClick={() => setIsUserMenuOpen(false)}

@@ -1,3 +1,4 @@
+import { assetUrl } from '../utils/asset';
 export type Game = {
   id: string;
   title: string;
@@ -19,10 +20,10 @@ export const games: Game[] = [
     releaseDate: '2027',
     status: 'In Development',
     genre: ['Action', 'Survival', 'Sci-Fi'],
-    coverImage: '/images/games/nebula-cover.jpg',
+    coverImage: assetUrl('/images/games/nebula-cover.jpg'),
     screenshots: [
-      '/images/games/nebula-1.jpg',
-      '/images/games/nebula-2.jpg'
+      assetUrl('/images/games/nebula-1.jpg'),
+      assetUrl('/images/games/nebula-2.jpg')
     ]
   },
   {
@@ -33,10 +34,10 @@ export const games: Game[] = [
     releaseDate: '2025',
     status: 'Released',
     genre: ['Racing', 'Cyberpunk', 'Rhythm'],
-    coverImage: '/images/games/neon-cover.jpg',
+    coverImage: assetUrl('/images/games/neon-cover.jpg'),
     screenshots: [
-      '/images/games/neon-1.jpg',
-      '/images/games/neon-2.jpg'
+      assetUrl('/images/games/neon-1.jpg'),
+      assetUrl('/images/games/neon-2.jpg')
     ]
   }
 ];

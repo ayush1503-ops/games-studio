@@ -99,7 +99,7 @@ const PublicApp: React.FC = () => {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <SupabaseAuthProvider>
         {/* A password-reset email link that lands anywhere on the site is carried to the reset screen. */}
         <PasswordRecoveryRedirect />
